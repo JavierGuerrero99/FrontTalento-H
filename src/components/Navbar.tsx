@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Building2, User, Menu, X, Briefcase } from "lucide-react";
+import { Building2, User, Menu, X, Briefcase, UserPlus } from "lucide-react";
 import talentoHubLogo from "figma:asset/052c6a78ca3319cbddd4ec6681d537029ae56218.png";
 import {
   DropdownMenu,
@@ -12,9 +12,11 @@ import {
 interface NavbarProps {
   activeSection?: string;
   onNavigate?: (section: string) => void;
+  isAuthenticated?: boolean;
+  onLogout?: () => void;
 }
 
-export function Navbar({ activeSection = "trabajos", onNavigate }: NavbarProps) {
+export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated = false, onLogout }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavigation = (section: string) => {
@@ -56,13 +58,28 @@ export function Navbar({ activeSection = "trabajos", onNavigate }: NavbarProps) 
               <Building2 className="w-4 h-4" />
               Empresas
             </Button>
+            {isAuthenticated && (
+              <>
+                <Button
+                  variant={activeSection === "perfil" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("perfil")}
+                  className="gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  Perfil
+                </Button>
+                <Button variant="ghost" onClick={() => onLogout && onLogout()} className="gap-2">
+                  Cerrar sesión
+                </Button>
+              </>
+            )}
             <Button
-              variant={activeSection === "perfil" ? "default" : "ghost"}
-              onClick={() => handleNavigation("perfil")}
+              variant={activeSection === "registro" ? "default" : "ghost"}
+              onClick={() => handleNavigation("registro")}
               className="gap-2"
             >
-              <User className="w-4 h-4" />
-              Perfil
+              <UserPlus className="w-4 h-4" />
+              Registro
             </Button>
           </div>
 
@@ -93,12 +110,21 @@ export function Navbar({ activeSection = "trabajos", onNavigate }: NavbarProps) 
                   <Building2 className="w-4 h-4" />
                   Empresas
                 </DropdownMenuItem>
+                {isAuthenticated && (
+                  <DropdownMenuItem
+                    onClick={() => handleNavigation("perfil")}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <User className="w-4 h-4" />
+                    Perfil
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
-                  onClick={() => handleNavigation("perfil")}
+                  onClick={() => handleNavigation("registro")}
                   className="gap-2 cursor-pointer"
                 >
-                  <User className="w-4 h-4" />
-                  Perfil
+                  <UserPlus className="w-4 h-4" />
+                  Registro
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

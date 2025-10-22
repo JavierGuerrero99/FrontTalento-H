@@ -5,8 +5,11 @@ import { RegisterForm } from "./components/RegisterForm";
 import { LoginForm } from "./components/LoginForm";
 import { ProfileSection } from "./components/ProfileSection";
 import { JobListings } from "./components/JobListings";
+import { CompetenciaForm } from "./components/CompetenciaForm";
+import { Button } from "./components/ui/button";
 
 export default function App() {
+  const [showCompetenciaForm, setShowCompetenciaForm] = useState(false);
   const [activeSection, setActiveSection] = useState("login");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
@@ -61,9 +64,21 @@ export default function App() {
                   Registra y administra las empresas en Talento-Hub
                 </p>
               </div>
+
               <CompanyRegistrationForm />
+
+              <div className="pt-6">
+                <Button onClick={() => setShowCompetenciaForm(true)}>
+                  Crear Competencia
+                </Button>
+              </div>
+
+              {showCompetenciaForm && (
+                <CompetenciaForm onClose={() => setShowCompetenciaForm(false)} />
+              )}
             </div>
           )}
+
           
           {activeSection === "perfil" && (
             <div className="w-full flex flex-col items-center gap-6">

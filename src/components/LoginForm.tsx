@@ -44,17 +44,24 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginFormProps
     setSubmitError(null);
 
     try {
-      // Simular llamada a API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Importar dinámicamente el servicio de auth
+      const auth = await import("../services/auth").then(m => m.default);
       
-      // Por ahora, acepta cualquier login (sin validación real)
-      console.log("Login exitoso:", data);
+      // Llamar al backend Django para obtener tokens
+      await auth.login(data.email, data.password);
+      
+      // Si llegamos aquí, el login fue exitoso
+      console.log("Login exitoso:", data.email);
       
       if (onLoginSuccess) {
         onLoginSuccess(data.email);
       }
-    } catch (error) {
-      setSubmitError("Error al iniciar sesión. Por favor, intenta de nuevo.");
+    } catch (error: any) {
+      console.error("Error de login:", error);
+      setSubmitError(
+        error.response?.data?.detail || 
+        "Error al iniciar sesión. Verifica tus credenciales."
+      );
     } finally {
       setIsSubmitting(false);
     }

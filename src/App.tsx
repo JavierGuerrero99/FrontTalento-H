@@ -5,7 +5,6 @@ import { RegisterForm } from "./components/RegisterForm";
 import { LoginForm } from "./components/LoginForm";
 import { ProfileSection } from "./components/ProfileSection";
 import { JobListings } from "./components/JobListings";
-
 export default function App() {
   const [activeSection, setActiveSection] = useState("login");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -61,7 +60,12 @@ export default function App() {
                   Registra y administra las empresas en Talento-Hub
                 </p>
               </div>
-              <CompanyRegistrationForm />
+              <CompanyRegistrationForm 
+                onRegistrationSuccess={() => {
+                  setIsAuthenticated(true);
+                  setActiveSection("trabajos");
+                }}
+              />
             </div>
           )}
           

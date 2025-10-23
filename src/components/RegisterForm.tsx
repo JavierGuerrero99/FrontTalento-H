@@ -80,16 +80,14 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
     setSubmitError(null);
 
     try {
-      // Simular llamada a API
+      // TODO: Implementar registro de candidatos cuando el backend esté listo
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      console.log("Registro de candidato exitoso:", data);
-      
+      console.log("Registro de candidato (simulado):", data);
       if (onRegisterSuccess) {
         onRegisterSuccess(data.email, "candidate");
       }
     } catch (error) {
-      setSubmitError("Error al registrar. Por favor, intenta de nuevo.");
+      setSubmitError("El registro de candidatos no está disponible aún.");
     } finally {
       setIsSubmitting(false);
     }
@@ -100,16 +98,30 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
     setSubmitError(null);
 
     try {
-      // Simular llamada a API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const auth = await import("../services/auth").then(m => m.default);
       
-      console.log("Registro de empresa exitoso:", data);
+      // Enviar datos al backend
+      await auth.registerCompany({
+        companyName: data.companyName,
+        nit: data.nit,
+        email: data.email,
+        password: data.password
+      });
+      
+      console.log("Registro de empresa exitoso:", data.email);
+      
+      // Intentar hacer login automáticamente después del registro
+      await auth.login(data.email, data.password);
       
       if (onRegisterSuccess) {
         onRegisterSuccess(data.email, "company");
       }
-    } catch (error) {
-      setSubmitError("Error al registrar. Por favor, intenta de nuevo.");
+    } catch (error: any) {
+      console.error("Error de registro:", error);
+      setSubmitError(
+        error.response?.data?.detail || 
+        "Error al registrar. Por favor, verifica los datos e intenta de nuevo."
+      );
     } finally {
       setIsSubmitting(false);
     }

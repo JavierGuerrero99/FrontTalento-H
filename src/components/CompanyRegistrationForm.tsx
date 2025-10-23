@@ -6,12 +6,13 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Upload } from "lucide-react";
-import talentoHubLogo from "figma:asset/052c6a78ca3319cbddd4ec6681d537029ae56218.png";
+import { Upload, AlertCircle } from "lucide-react";
+import { registerCompany } from "../services/auth";
+import { Alert, AlertDescription } from "./ui/alert";
 
 // Schema de validación con campos obligatorios
 const companySchema = z.object({
-  nombre: z
+  companyName: z
     .string()
     .min(1, "El nombre de la empresa es obligatorio")
     .min(2, "El nombre debe tener al menos 2 caracteres")
@@ -22,19 +23,27 @@ const companySchema = z.object({
     .min(5, "El NIT debe tener al menos 5 caracteres")
     .max(20, "El NIT no puede exceder 20 caracteres")
     .regex(/^[0-9-]+$/, "El NIT solo puede contener números y guiones"),
-  direccion: z
+  email: z
     .string()
-    .min(1, "La dirección es obligatoria")
-    .min(5, "La dirección debe tener al menos 5 caracteres")
-    .max(200, "La dirección no puede exceder 200 caracteres"),
+    .min(1, "El correo electrónico es obligatorio")
+    .email("Correo electrónico inválido"),
+  password: z
+    .string()
+    .min(1, "La contraseña es obligatoria")
+    .min(8, "La contraseña debe tener al menos 8 caracteres"),
   logo: z.any().optional(),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
 
-export function CompanyRegistrationForm() {
+type Props = {
+  onRegistrationSuccess?: () => void;
+};
+
+export function CompanyRegistrationForm({ onRegistrationSuccess }: Props) {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -58,56 +67,61 @@ export function CompanyRegistrationForm() {
   };
 
   const onSubmit = async (data: CompanyFormData) => {
-    // Simulación de envío de datos
-    console.log("Datos de la empresa:", {
-      ...data,
-      logo: logoFile,
-    });
+    try {
+      setError(null);
+      await registerCompany({
+        companyName: data.companyName,
+        nit: data.nit,
+        email: data.email,
+        password: data.password,
+      });
 
-    // Aquí se conectaría con el backend para guardar los datos
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    alert("¡Empresa registrada exitosamente!");
-    reset();
-    setLogoPreview(null);
-    setLogoFile(null);
+      reset();
+      setLogoPreview(null);
+      setLogoFile(null);
+      
+      if (onRegistrationSuccess) {
+        onRegistrationSuccess();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Error al registrar la empresa. Por favor, inténtalo de nuevo.');
+    }
   };
 
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <div className="flex items-center gap-3">
-          <img 
-            src={talentoHubLogo} 
-            alt="Talento-Hub Logo" 
-            className="w-12 h-12 object-contain"
-          />
-          <div>
-            <CardTitle>Registro de Empresa</CardTitle>
-            <CardDescription className="mt-1">
-              Complete los datos de su empresa para registrarse en Talento-Hub
-              <br />
-              <span className="text-destructive">*</span> Campos obligatorios
-            </CardDescription>
-          </div>
+        <div>
+          <CardTitle>Registro de Empresa</CardTitle>
+          <CardDescription className="mt-1">
+            Complete los datos de su empresa para registrarse en Talento-Hub
+            <br />
+            <span className="text-destructive">*</span> Campos obligatorios
+          </CardDescription>
         </div>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Campo Nombre */}
           <div className="space-y-2">
-            <Label htmlFor="nombre">
+            <Label htmlFor="companyName">
               Nombre de la Empresa <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="nombre"
-              {...register("nombre")}
+              id="companyName"
+              {...register("companyName")}
               placeholder="Ej: Tecnología Innovadora S.A.S"
-              className={errors.nombre ? "border-destructive" : ""}
-              required
+              className={errors.companyName ? "border-destructive" : ""}
             />
-            {errors.nombre && (
-              <p className="text-destructive text-sm">{errors.nombre.message}</p>
+            {errors.companyName && (
+              <p className="text-destructive text-sm">{errors.companyName.message}</p>
             )}
           </div>
 
@@ -121,27 +135,43 @@ export function CompanyRegistrationForm() {
               {...register("nit")}
               placeholder="Ej: 900123456-7"
               className={errors.nit ? "border-destructive" : ""}
-              required
             />
             {errors.nit && (
               <p className="text-destructive text-sm">{errors.nit.message}</p>
             )}
           </div>
 
-          {/* Campo Dirección */}
+          {/* Campo Email */}
           <div className="space-y-2">
-            <Label htmlFor="direccion">
-              Dirección <span className="text-destructive">*</span>
+            <Label htmlFor="email">
+              Correo Electrónico <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="direccion"
-              {...register("direccion")}
-              placeholder="Ej: Calle 123 #45-67, Bogotá"
-              className={errors.direccion ? "border-destructive" : ""}
-              required
+              id="email"
+              type="email"
+              {...register("email")}
+              placeholder="empresa@ejemplo.com"
+              className={errors.email ? "border-destructive" : ""}
             />
-            {errors.direccion && (
-              <p className="text-destructive text-sm">{errors.direccion.message}</p>
+            {errors.email && (
+              <p className="text-destructive text-sm">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Campo Password */}
+          <div className="space-y-2">
+            <Label htmlFor="password">
+              Contraseña <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              {...register("password")}
+              placeholder="••••••••"
+              className={errors.password ? "border-destructive" : ""}
+            />
+            {errors.password && (
+              <p className="text-destructive text-sm">{errors.password.message}</p>
             )}
           </div>
 
@@ -182,7 +212,7 @@ export function CompanyRegistrationForm() {
             </div>
           </div>
 
-          {/* Botón de Envío */}
+          {/* Botones */}
           <div className="flex gap-3 pt-4">
             <Button
               type="submit"
@@ -198,6 +228,7 @@ export function CompanyRegistrationForm() {
                 reset();
                 setLogoPreview(null);
                 setLogoFile(null);
+                setError(null);
               }}
             >
               Limpiar

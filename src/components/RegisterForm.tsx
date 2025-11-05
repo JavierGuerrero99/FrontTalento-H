@@ -17,11 +17,11 @@ const candidateSchema = z.object({
     .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
     .max(30, "El nombre de usuario no puede exceder 30 caracteres")
     .optional(),
-  name: z
+  first_name: z
     .string()
     .min(3, "El nombre debe tener al menos 3 caracteres")
     .max(50, "El nombre no puede exceder 50 caracteres"),
-  lastName: z
+  last_name: z
     .string()
     .min(3, "El apellido debe tener al menos 3 caracteres")
     .max(50, "El apellido no puede exceder 50 caracteres"),
@@ -94,8 +94,8 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
       // Enviar datos al backend
       await auth.registerCandidate({
         username: data.username ?? data.email.split("@")[0],
-        name: data.name,
-        lastName: data.lastName,
+        first_name: data.first_name,
+        last_name: data.last_name,
         email: data.email,
         password: data.password
       });
@@ -178,35 +178,35 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
             <form onSubmit={candidateForm.handleSubmit(onSubmitCandidate)} className="space-y-4">
               {/* Nombres */}
               <div className="space-y-2">
-                <Label htmlFor="name">Nombres</Label>
+                <Label htmlFor="first_name">Nombres</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="name"
+                    id="first_name"
                     type="text"
                     placeholder="Juan Diego"
                     className="pl-10"
-                    {...candidateForm.register("name")}
+                    {...candidateForm.register("first_name")}
                   />
                 </div>
-                {candidateForm.formState.errors.name && (
+                {candidateForm.formState.errors.first_name && (
                   <p className="text-sm text-destructive">
-                    {candidateForm.formState.errors.name.message}
+                    {candidateForm.formState.errors.first_name.message}
                   </p>)}
-                <Label htmlFor="lastName">Apellidos</Label>
+                <Label htmlFor="last_name">Apellidos</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="lastName"
+                    id="last_name"
                     type="text"
                     placeholder="Pérez Urriaga"
                     className="pl-10"
-                    {...candidateForm.register("lastName")}
+                    {...candidateForm.register("last_name")}
                   />
                 </div>
-                {candidateForm.formState.errors.lastName && (
+                {candidateForm.formState.errors.last_name && (
                   <p className="text-sm text-destructive">
-                    {candidateForm.formState.errors.lastName.message}
+                    {candidateForm.formState.errors.last_name.message}
                   </p>
                 )}
               </div>

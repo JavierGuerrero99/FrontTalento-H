@@ -21,8 +21,8 @@ const REGISTER_CANDIDATE_PATH = "/auth/register/"; // endpoint para registro de 
 // Tipo para el registro de candidato
 type CandidateRegistration = {
   username: string;
-  name: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
 };

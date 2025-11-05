@@ -51,6 +51,7 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
       // Llamar al backend Django para obtener token
       await auth.login(data.email, data.password);
       
+      
       // Si llegamos aquí, el login fue exitoso
       console.log("Login exitoso:", data.email);
       

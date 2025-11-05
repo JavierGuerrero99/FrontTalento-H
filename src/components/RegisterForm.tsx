@@ -15,7 +15,8 @@ const candidateSchema = z.object({
   username: z
     .string()
     .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
-    .max(30, "El nombre de usuario no puede exceder 30 caracteres"),
+    .max(30, "El nombre de usuario no puede exceder 30 caracteres")
+    .optional(),
   name: z
     .string()
     .min(3, "El nombre debe tener al menos 3 caracteres")
@@ -88,14 +89,25 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
     setSubmitError(null);
 
     try {
-      // TODO: Implementar registro de candidatos cuando el backend esté listo
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Registro de candidato (simulado):", data);
+      console.log("Registro de candidato con datos:", data);
+      const auth = await import("../services/auth").then(m => m.default);
+      // Enviar datos al backend
+      await auth.registerCandidate({
+        username: data.username ?? data.email.split("@")[0],
+        name: data.name,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password
+      });
       if (onRegisterSuccess) {
         onRegisterSuccess(data.email, "candidate");
       }
-    } catch (error) {
-      setSubmitError("El registro de candidatos no está disponible aún.");
+    } catch (error: any) {
+      console.error("Error de registro de candidato:", error);
+      setSubmitError(
+        error.response?.data?.detail ||
+        "Error al registrar candidato. Por favor, verifica los datos e intenta de nuevo."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -265,7 +277,7 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
                 {isSubmitting ? "Registrando..." : "Registrarme"}
               </Button>
             </form>

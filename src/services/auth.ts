@@ -1,12 +1,42 @@
 import api from "./api";
 
 type LoginResponse = {
-  token: string;
-};
+    refresh: string,
+    access: string,
+    user: {
+        id: number,
+        username: string,
+        email: string,
+        first_name: string,
+        last_name: string,
+        groups: string[]
+    }
+}
 
 // Endpoints configurados para tu backend Django
-const LOGIN_PATH = "/api/token/"; // obtiene el token de autenticación
+const LOGIN_PATH = "/token/"; // obtiene el token de autenticación
+
 const REGISTER_COMPANY_PATH = "/api/empresas/"; // endpoint para registro de empresas
+const REGISTER_CANDIDATE_PATH = "/auth/register/"; // endpoint para registro de candidatos
+// Tipo para el registro de candidato
+type CandidateRegistration = {
+  username: string;
+  name: string;
+  lastName: string;
+  email: string;
+  password: string;
+};
+export const registerCandidate = async (candidateData: CandidateRegistration) => {
+  try {
+    // El registro de candidatos normalmente no requiere token de admin
+    await api.post(REGISTER_CANDIDATE_PATH, candidateData);
+    // Si el registro fue exitoso, hacer login con la nueva cuenta
+    return await login(candidateData.email, candidateData.password);
+  } catch (error: any) {
+    console.error('Error en el proceso de registro de candidato:', error);
+    throw error;
+  }
+};
 
 // Tipo para el registro de empresa
 type CompanyRegistration = {
@@ -21,9 +51,9 @@ export const login = async (username: string, password: string) => {
     console.log('🔄 Intentando login con:', { username });
     const resp = await api.post<LoginResponse>(LOGIN_PATH, { username, password });
     console.log('✅ Respuesta del login:', resp.data);
-    
-    const { token } = resp.data;
-    localStorage.setItem("access_token", token);
+    const { access, refresh } = resp.data;
+    localStorage.setItem("access_token", access);
+    localStorage.setItem("refresh_token", refresh);
     
     return resp.data;
   } catch (error: any) {
@@ -55,16 +85,16 @@ const getAdminToken = async () => {
       password: ADMIN_CREDENTIALS.password
     });
     
-    if (!response.data.token) {
+    if (!response.data.access || !response.data.refresh ) {
       throw new Error('No se recibió token de acceso');
     }
 
     console.log('✅ Token obtenido exitosamente');
     
     // 3. Guardar el token
-    localStorage.setItem('access_token', response.data.token);
+    localStorage.setItem('access_token', response.data.access);
     
-    return response.data.token;
+    return response.data.access;
   } catch (error) {
     console.error('❌ Error al obtener token:', error);
     // Limpiar token en caso de error
@@ -108,5 +138,6 @@ export default {
   login,
   logout,
   registerCompany,
+  registerCandidate,
   getCurrentUser,
 };

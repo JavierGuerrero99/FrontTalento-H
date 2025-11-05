@@ -8,16 +8,9 @@ import { ProfileSection } from "./components/ProfileSection";
 import { JobListings } from "./components/JobListings";
 export default function App() {
 
-  // Siempre iniciar en login y limpiar autenticación
-  const [activeSection, setActiveSection] = useState("login");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  useEffect(() => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("access_token");
-    setActiveSection("login");
-    setIsAuthenticated(false);
-  }, []);
+  // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem("access_token"));
+  const [activeSection, setActiveSection] = useState<string>(() => (localStorage.getItem("access_token") ? "trabajos" : "login"));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -30,6 +23,8 @@ export default function App() {
           setActiveSection("login");
           try {
             localStorage.removeItem("isAuthenticated");
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
           } catch {}
         }}
       />
@@ -59,6 +54,7 @@ export default function App() {
               <CompanyRegistrationForm 
                 onRegistrationSuccess={() => {
                   setIsAuthenticated(true);
+                  try { localStorage.setItem("isAuthenticated", "true"); } catch {}
                   setActiveSection("trabajos");
                 }}
               />
@@ -88,6 +84,7 @@ export default function App() {
                 onSwitchToRecover={() => setActiveSection("recover")}
                 onLoginSuccess={() => {
                   setIsAuthenticated(true);
+                  try { localStorage.setItem("isAuthenticated", "true"); } catch {}
                   setActiveSection("trabajos");
                 }}
               />
@@ -116,6 +113,7 @@ export default function App() {
                 onSwitchToLogin={() => setActiveSection("login")}
                 onRegisterSuccess={() => {
                   setIsAuthenticated(true);
+                  try { localStorage.setItem("isAuthenticated", "true"); } catch {}
                   setActiveSection("trabajos");
                 }}
               />

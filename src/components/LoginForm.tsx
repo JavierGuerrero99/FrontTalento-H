@@ -25,9 +25,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 interface LoginFormProps {
   onLoginSuccess?: (email: string) => void;
   onSwitchToRegister?: () => void;
+  onSwitchToRecover?: () => void;
 }
 
-export function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginFormProps) {
+export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecover }: LoginFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -45,9 +46,9 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginFormProps
 
     try {
       // Importar dinámicamente el servicio de auth
-      const auth = await import("../services/auth").then(m => m.default);
-      
-      // Llamar al backend Django para obtener tokens
+      const auth = await import("../services/auth").then(m => m);
+
+      // Llamar al backend Django para obtener token
       await auth.login(data.email, data.password);
       
       // Si llegamos aquí, el login fue exitoso
@@ -144,6 +145,9 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginFormProps
             >
               Regístrate aquí
             </button>
+          </div>
+          <div className="text-center text-sm">
+            <button type="button" onClick={onSwitchToRecover} className="text-muted-foreground hover:underline mt-2">¿Olvidaste tu contraseña?</button>
           </div>
         </form>
       </CardContent>

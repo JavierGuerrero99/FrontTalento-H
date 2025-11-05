@@ -12,10 +12,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 // Schema de validación para candidatos
 const candidateSchema = z.object({
+  username: z
+    .string()
+    .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
+    .max(30, "El nombre de usuario no puede exceder 30 caracteres"),
   name: z
     .string()
     .min(3, "El nombre debe tener al menos 3 caracteres")
-    .max(100, "El nombre no puede exceder 100 caracteres"),
+    .max(50, "El nombre no puede exceder 50 caracteres"),
+  lastName: z
+    .string()
+    .min(3, "El apellido debe tener al menos 3 caracteres")
+    .max(50, "El apellido no puede exceder 50 caracteres"),
   email: z
     .string()
     .min(1, "El correo electrónico es obligatorio")
@@ -156,15 +164,15 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
           {/* Formulario para Candidatos */}
           <TabsContent value="candidate">
             <form onSubmit={candidateForm.handleSubmit(onSubmitCandidate)} className="space-y-4">
-              {/* Nombre completo */}
+              {/* Nombres */}
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre Completo</Label>
+                <Label htmlFor="name">Nombres</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Juan Pérez"
+                    placeholder="Juan Diego"
                     className="pl-10"
                     {...candidateForm.register("name")}
                   />
@@ -172,6 +180,21 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                 {candidateForm.formState.errors.name && (
                   <p className="text-sm text-destructive">
                     {candidateForm.formState.errors.name.message}
+                  </p>)}
+                <Label htmlFor="lastName">Apellidos</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Pérez Urriaga"
+                    className="pl-10"
+                    {...candidateForm.register("lastName")}
+                  />
+                </div>
+                {candidateForm.formState.errors.lastName && (
+                  <p className="text-sm text-destructive">
+                    {candidateForm.formState.errors.lastName.message}
                   </p>
                 )}
               </div>
@@ -243,7 +266,7 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
               )}
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Registrando..." : "Registrarse como Candidato"}
+                {isSubmitting ? "Registrando..." : "Registrarme"}
               </Button>
             </form>
           </TabsContent>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Building2, User, Menu, X, Briefcase, UserPlus } from "lucide-react";
-import talentoHubLogo from "figma:asset/052c6a78ca3319cbddd4ec6681d537029ae56218.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,34 +31,30 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
         <div className="flex justify-between items-center h-16">
           {/* Logo y nombre */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavigation("trabajos")}>
-            <img 
-              src={talentoHubLogo} 
-              alt="Talento-Hub" 
-              className="w-10 h-10 object-contain"
-            />
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">TH</div>
             <span className="text-primary">Talento-Hub</span>
           </div>
 
           {/* Navegación Desktop */}
           <div className="hidden md:flex items-center gap-2">
-            <Button
-              variant={activeSection === "trabajos" ? "default" : "ghost"}
-              onClick={() => handleNavigation("trabajos")}
-              className="gap-2"
-            >
-              <Briefcase className="w-4 h-4" />
-              Trabajos
-            </Button>
-            <Button
-              variant={activeSection === "empresas" ? "default" : "ghost"}
-              onClick={() => handleNavigation("empresas")}
-              className="gap-2"
-            >
-              <Building2 className="w-4 h-4" />
-              Empresas
-            </Button>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <>
+                <Button
+                  variant={activeSection === "trabajos" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("trabajos")}
+                  className="gap-2"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Trabajos
+                </Button>
+                <Button
+                  variant={activeSection === "empresas" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("empresas")}
+                  className="gap-2"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Empresas
+                </Button>
                 <Button
                   variant={activeSection === "perfil" ? "default" : "ghost"}
                   onClick={() => handleNavigation("perfil")}
@@ -72,15 +67,32 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                   Cerrar sesión
                 </Button>
               </>
+            ) : (
+              <>
+                <Button
+                  variant={activeSection === "login" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("login")}
+                  className="gap-2"
+                >
+                  Iniciar sesión
+                </Button>
+                <Button
+                  variant={activeSection === "registro" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("registro")}
+                  className="gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Registro
+                </Button>
+                <Button
+                  variant={activeSection === "recover" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("recover")}
+                  className="gap-2"
+                >
+                  Recuperar contraseña
+                </Button>
+              </>
             )}
-            <Button
-              variant={activeSection === "registro" ? "default" : "ghost"}
-              onClick={() => handleNavigation("registro")}
-              className="gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              Registro
-            </Button>
           </div>
 
           {/* Menú Mobile */}
@@ -96,36 +108,40 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => handleNavigation("trabajos")}
-                  className="gap-2 cursor-pointer"
-                >
-                  <Briefcase className="w-4 h-4" />
-                  Trabajos
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleNavigation("empresas")}
-                  className="gap-2 cursor-pointer"
-                >
-                  <Building2 className="w-4 h-4" />
-                  Empresas
-                </DropdownMenuItem>
-                {isAuthenticated && (
-                  <DropdownMenuItem
-                    onClick={() => handleNavigation("perfil")}
-                    className="gap-2 cursor-pointer"
-                  >
-                    <User className="w-4 h-4" />
-                    Perfil
-                  </DropdownMenuItem>
+                {isAuthenticated ? (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => handleNavigation("trabajos")}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Briefcase className="w-4 h-4" />
+                      Trabajos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleNavigation("empresas")}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      Empresas
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleNavigation("perfil")}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <User className="w-4 h-4" />
+                      Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onLogout && onLogout()} className="gap-2 cursor-pointer">
+                      Cerrar sesión
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => handleNavigation("login")} className="gap-2 cursor-pointer">Iniciar sesión</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleNavigation("registro")} className="gap-2 cursor-pointer">Registro</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleNavigation("recover")} className="gap-2 cursor-pointer">Recuperar contraseña</DropdownMenuItem>
+                  </>
                 )}
-                <DropdownMenuItem
-                  onClick={() => handleNavigation("registro")}
-                  className="gap-2 cursor-pointer"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Registro
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

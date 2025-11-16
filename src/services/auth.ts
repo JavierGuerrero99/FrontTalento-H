@@ -104,14 +104,21 @@ const getAdminToken = async () => {
 };
 
 // Función para usar en las peticiones que requieren auth
-export const getAuthHeaders = async () => {
+/*export const getAuthHeaders = async () => {
   const adminToken = await getAdminToken();
   console.log('🔑 Token a usar:', adminToken);
   return {
     'Authorization': `Token ${adminToken}`,
     'Content-Type': 'application/json'
   };
+};*/
+export const getAuthHeaders = async () => {
+  const adminToken = await getAdminToken();
+  return {
+    Authorization: `Bearer ${adminToken}`,
+  };
 };
+
 
 export const registerCompany = async (companyData: CompanyRegistration) => {
   try {

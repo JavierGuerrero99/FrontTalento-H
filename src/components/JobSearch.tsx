@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Badge } from "./ui/badge";
-import { categories, jobTypes, experienceLevels } from "../lib/mockJobs";
 import {
   Sheet,
   SheetContent,
@@ -52,6 +51,24 @@ export function JobSearch({
   onLocationChange,
 }: JobSearchProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const categories = ["Todas", "General"];
+  const jobTypes = [
+    "Todos",
+    "Tiempo completo",
+    "Medio tiempo",
+    "Contrato",
+    "Freelance",
+    "Pasantía",
+  ];
+  const experienceLevels = [
+    "Todos",
+    "Sin experiencia",
+    "6 meses",
+    "1 año",
+    "3 años",
+    "+5 años",
+  ];
 
   const activeFiltersCount = [
     selectedCategory !== "Todas",

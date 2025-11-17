@@ -25,17 +25,71 @@ interface VacantesEmpresaProps {
 
 
 export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
+  const colombiaCities = [
+    "Bogotá",
+    "Medellín",
+    "Cali",
+    "Barranquilla",
+    "Cartagena",
+    "Bucaramanga",
+    "Pereira",
+    "Santa Marta",
+    "Manizales",
+    "Cúcuta",
+    "Ibagué",
+    "Villavicencio",
+    "Pasto",
+    "Montería",
+    "Neiva",
+    "Armenia",
+    "Sincelejo",
+    "Popayán",
+    "Valledupar",
+    "Tunja",
+    "Riohacha",
+    "Yopal",
+    "Floridablanca",
+    "Soacha",
+    "Palmira",
+    "Envigado",
+    "Itagüí",
+    "Chía",
+    "Zipaquirá",
+    "Soledad",
+    "Girón",
+    "Dosquebradas",
+    "Apartadó",
+    "Turbo",
+    "Rionegro",
+    "Jamundí",
+    "Sogamoso",
+    "Facatativá",
+    "Fusagasugá",
+    "Florencia",
+    "Quibdó",
+    "Leticia",
+    "San Andrés",
+  ];
   const [vacantes, setVacantes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "borrador" | "publicado">("all");
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingVacante, setEditingVacante] = useState<any | null>(null);
+  const [publishConfirmId, setPublishConfirmId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [editValues, setEditValues] = useState({
     titulo: "",
     descripcion: "",
     requisitos: "",
     fecha_expiracion: "",
+    ubicacion: "",
+    salario: "",
+    experiencia: "",
+    beneficios: "",
+    tipo_jornada: "",
+    modalidad_trabajo: "",
   });
 
   useEffect(() => {
@@ -46,6 +100,7 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
           if (!mounted) return;
           setVacantes(data || []);
           setError(null);
+          setSuccess(null);
         })
       .catch((e) => {
         if (!mounted) return;
@@ -78,6 +133,12 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
       descripcion: vacante.descripcion || "",
       requisitos: vacante.requisitos || "",
       fecha_expiracion: yyyyMMdd,
+      ubicacion: vacante.ubicacion || "",
+      salario: vacante.salario != null ? String(vacante.salario) : "",
+      experiencia: vacante.experiencia || "",
+      beneficios: vacante.beneficios || "",
+      tipo_jornada: vacante.tipo_jornada || "",
+      modalidad_trabajo: vacante.modalidad_trabajo || "",
     });
     setIsEditOpen(true);
   };
@@ -97,34 +158,51 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
       if (editValues.fecha_expiracion) {
         payload.fecha_expiracion = `${editValues.fecha_expiracion}T00:00:00`;
       }
+      if (editValues.ubicacion.trim()) payload.ubicacion = editValues.ubicacion.trim();
+      if (editValues.salario.trim()) payload.salario = editValues.salario.trim();
+      if (editValues.experiencia.trim()) payload.experiencia = editValues.experiencia.trim();
+      if (editValues.beneficios.trim()) payload.beneficios = editValues.beneficios.trim();
+      if (editValues.tipo_jornada.trim()) payload.tipo_jornada = editValues.tipo_jornada.trim();
+      if (editValues.modalidad_trabajo.trim()) payload.modalidad_trabajo = editValues.modalidad_trabajo.trim();
       await editVacancy(editingVacante.id, payload);
       setIsEditOpen(false);
       setEditingVacante(null);
+      setSuccess("Vacante actualizada correctamente");
       await refreshVacantes();
     } catch (e) {
-      alert("Error al guardar cambios de la vacante");
+      console.error("Error al guardar cambios de la vacante", e);
+      const message =
+        (e as any)?.response?.data?.detalle ||
+        (e as any)?.response?.data?.detail ||
+        (e as any)?.response?.data?.error ||
+        "Error al guardar cambios de la vacante. Verifica que la fecha no sea pasada y que todos los campos sean válidos.";
+      setError(typeof message === "string" ? message : "Error al guardar cambios de la vacante.");
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('¿Seguro que deseas eliminar esta vacante?')) {
-      try {
-        await import('../services/api').then(({ deleteVacancy }) => deleteVacancy(id));
-        await refreshVacantes();
-      } catch (e) {
-        alert('Error al eliminar la vacante');
-      }
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmId == null) return;
+    try {
+      await import('../services/api').then(({ deleteVacancy }) => deleteVacancy(deleteConfirmId));
+      setSuccess('Vacante eliminada correctamente');
+      setDeleteConfirmId(null);
+      await refreshVacantes();
+    } catch (e) {
+      setError('Error al eliminar la vacante');
+      setDeleteConfirmId(null);
     }
   };
 
-  const handlePublish = async (id: number) => {
-    if (window.confirm('¿Seguro que deseas publicar esta vacante?')) {
-      try {
-        await import('../services/api').then(({ publishVacancy }) => publishVacancy(id));
-        await refreshVacantes();
-      } catch (e) {
-        alert('Error al publicar la vacante');
-      }
+  const handleConfirmPublish = async () => {
+    if (publishConfirmId == null) return;
+    try {
+      await import('../services/api').then(({ publishVacancy }) => publishVacancy(publishConfirmId));
+      setSuccess('Vacante publicada correctamente');
+      setPublishConfirmId(null);
+      await refreshVacantes();
+    } catch (e) {
+      setError('Error al publicar la vacante');
+      setPublishConfirmId(null);
     }
   };
 
@@ -216,6 +294,14 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Success */}
+        {success && (
+          <Alert className="mb-6 border-green-500/60 bg-green-50 text-green-800">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
 
@@ -312,7 +398,7 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                             size="sm"
                             variant="default"
                             className="gap-2 text-primary-foreground"
-                            onClick={() => handlePublish(vacante.id)}
+                            onClick={() => setPublishConfirmId(vacante.id)}
                           >
                             <Send className="w-4 h-4" />
                             Publicar
@@ -322,7 +408,7 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                           size="sm"
                           variant="destructive"
                           className="gap-2"
-                          onClick={() => handleDelete(vacante.id)}
+                          onClick={() => setDeleteConfirmId(vacante.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                           Eliminar
@@ -373,6 +459,60 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                 />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="ubicacion">Ubicación</Label>
+                <select
+                  id="ubicacion"
+                  className="border rounded-md px-3 py-2 text-sm w-full"
+                  value={editValues.ubicacion}
+                  onChange={(e) => onEditChange("ubicacion", e.target.value)}
+                >
+                  <option value="">Selecciona una ciudad</option>
+                  {colombiaCities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                  <option value="Otra">Otra</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="salario">Salario</Label>
+                <Input
+                  id="salario"
+                  type="number"
+                  step="0.01"
+                  value={editValues.salario}
+                  onChange={(e) => onEditChange("salario", e.target.value)}
+                  placeholder="Ej. 3000000"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="experiencia">Experiencia requerida</Label>
+                <select
+                  id="experiencia"
+                  className="border rounded-md px-3 py-2 text-sm w-full"
+                  value={editValues.experiencia}
+                  onChange={(e) => onEditChange("experiencia", e.target.value)}
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="Sin experiencia">Sin experiencia</option>
+                  <option value="6 meses">6 meses</option>
+                  <option value="1 año">1 año</option>
+                  <option value="3 años">3 años</option>
+                  <option value="+5 años">+5 años</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="beneficios">Beneficios</Label>
+                <Textarea
+                  id="beneficios"
+                  value={editValues.beneficios}
+                  onChange={(e) => onEditChange("beneficios", e.target.value)}
+                  rows={3}
+                  placeholder="Escribe un beneficio por línea..."
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="fecha">Fecha de expiración</Label>
                 <Input
                   id="fecha"
@@ -381,10 +521,80 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                   onChange={(e) => onEditChange("fecha_expiracion", e.target.value)}
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="tipo_jornada">Tipo de jornada</Label>
+                <select
+                  id="tipo_jornada"
+                  className="border rounded-md px-3 py-2 text-sm w-full"
+                  value={editValues.tipo_jornada}
+                  onChange={(e) => onEditChange("tipo_jornada", e.target.value)}
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="Tiempo completo">Tiempo completo</option>
+                  <option value="Medio tiempo">Medio tiempo</option>
+                  <option value="Contrato">Contrato</option>
+                  <option value="Freelance">Freelance</option>
+                  <option value="Pasantía">Pasantía</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="modalidad_trabajo">Modalidad de trabajo</Label>
+                <select
+                  id="modalidad_trabajo"
+                  className="border rounded-md px-3 py-2 text-sm w-full"
+                  value={editValues.modalidad_trabajo}
+                  onChange={(e) => onEditChange("modalidad_trabajo", e.target.value)}
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="Hibrido">Híbrido</option>
+                  <option value="Remoto">Remoto</option>
+                  <option value="Presencial">Presencial</option>
+                </select>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
               <Button onClick={submitEdit}>Guardar cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Publish confirm dialog */}
+        <Dialog open={publishConfirmId !== null} onOpenChange={(open: boolean) => !open && setPublishConfirmId(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Publicar vacante</DialogTitle>
+              <DialogDescription>
+                ¿Estás seguro de que quieres publicar esta vacante? Luego será visible para los candidatos.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPublishConfirmId(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleConfirmPublish}>
+                Sí, publicar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete confirm dialog */}
+        <Dialog open={deleteConfirmId !== null} onOpenChange={(open: boolean) => !open && setDeleteConfirmId(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Eliminar vacante</DialogTitle>
+              <DialogDescription>
+                Esta acción no se puede deshacer. ¿Quieres eliminar esta vacante?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={handleConfirmDelete}>
+                Sí, eliminar
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

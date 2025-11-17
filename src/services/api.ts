@@ -2,7 +2,7 @@
 export const editVacancy = async (id: number, payload: any) => {
   const host = BASE_URL.replace(/\/api\/?$/i, "");
   const url = `${host}/vacantes/${id}/editar/`;
-  return api.post(url, payload);
+  return api.put(url, payload);
 };
 
 // Eliminar vacante
@@ -16,7 +16,7 @@ export const deleteVacancy = async (id: number) => {
 export const publishVacancy = async (id: number) => {
   const host = BASE_URL.replace(/\/api\/?$/i, "");
   const url = `${host}/vacantes/${id}/publicar/`;
-  return api.post(url);
+  return api.patch(url);
 };
 
 // Listar vacantes (sin prefijo /api en la URL; acepta empresa_id opcional)
@@ -187,6 +187,30 @@ export const refreshAccessToken = async () => {
   } catch (err) {
     console.error('❌ Error en refresh token:', err);
     return null;
+  }
+};
+
+// Obtener perfil del usuario autenticado (usa baseURL con /api)
+export const getProfile = async () => {
+  try {
+    const resp = await api.get("/perfil/");
+    return resp.data;
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al obtener el perfil:", err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
+// Actualizar datos de un usuario concreto (usa /api/users/{id}/)
+export const updateProfile = async (id: number, payload: any) => {
+  try {
+    const resp = await api.put(`/users/${id}/`, payload);
+    return resp.data;
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al actualizar el perfil:", err.response?.status, err.response?.data || err);
+    throw error;
   }
 };
 

@@ -1,4 +1,6 @@
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
@@ -26,22 +28,21 @@ interface JobDetailProps {
 export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   if (!job) return null;
 
-  const daysAgo = Math.floor(
-    (new Date().getTime() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24)
-  );
-  
-  const timeAgoText = daysAgo === 0 
-    ? "Hoy" 
-    : daysAgo === 1 
-    ? "Hace 1 día" 
-    : `Hace ${daysAgo} días`;
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  // Formatear fecha de expiración/publicación como DD/MM/AAAA
+  const posted = job.postedDate ? new Date(job.postedDate) : null;
+  const formattedDate = posted
+    ? `${String(posted.getDate()).padStart(2, "0")}/${String(posted.getMonth() + 1).padStart(2, "0")}/${posted.getFullYear()}`
+    : "Fecha no disponible";
 
   const handleApply = () => {
-    alert(`Aplicando a: ${job.title} en ${job.company}\n\nEn una versión completa, aquí se abriría el formulario de aplicación.`);
+    setInfoMessage(
+      `Aplicando a: ${job.title} en ${job.company}. En una versión completa, aquí se abriría el formulario de aplicación.`
+    );
   };
 
   const handleSave = () => {
-    alert(`Trabajo guardado: ${job.title}`);
+    setInfoMessage(`Trabajo guardado: ${job.title}`);
   };
 
   return (
@@ -49,6 +50,11 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
       <DialogContent className="max-w-3xl max-h-[90vh] p-0">
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
+            {infoMessage && (
+              <Alert className="mb-4 border-blue-500/60 bg-blue-50 text-blue-800">
+                <AlertDescription>{infoMessage}</AlertDescription>
+              </Alert>
+            )}
             <DialogHeader className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -79,7 +85,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span>{timeAgoText}</span>
+                  <span>{formattedDate}</span>
                 </div>
               </div>
 
@@ -97,7 +103,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
               <div className="flex gap-3">
                 <Button className="flex-1 gap-2" onClick={handleApply}>
                   <Send className="w-4 h-4" />
-                  Postularme
+                  Postularme a este trabajo
                 </Button>
                 <Button variant="outline" size="icon" onClick={handleSave}>
                   <Bookmark className="w-4 h-4" />
@@ -155,13 +161,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
                 </ul>
               </div>
 
-              {/* Botón final de aplicación */}
-              <div className="pt-4">
-                <Button className="w-full gap-2" size="lg" onClick={handleApply}>
-                  <Send className="w-4 h-4" />
-                  Postularme a este trabajo
-                </Button>
-              </div>
+              {/* Botón final de aplicación (eliminado para evitar duplicados) */}
             </div>
           </div>
         </ScrollArea>

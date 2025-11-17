@@ -140,8 +140,12 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavigation("trabajos")}>
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">TH</div>
-            <span className="text-primary">Talento-Hub</span>
+            <img
+              src="/logo.png"
+              alt="Talento-Hub logo"
+              className="w-10 h-10 rounded-full object-contain bg-white"
+            />
+            <span className="text-primary font-semibold">Talento-Hub</span>
           </div>
 
           {/* Navegación Desktop */}
@@ -163,7 +167,7 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                   className="gap-2"
                 >
                   <Building2 className="w-4 h-4" />
-                  Empresas
+                  Crear empresa
                 </Button>
 
                 {/* 🔥 NUEVA SECCIÓN: MIS EMPRESAS */}
@@ -239,7 +243,7 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                       className="gap-2 cursor-pointer"
                     >
                       <Building2 className="w-4 h-4" />
-                      Empresas
+                      Crear empresa
                     </DropdownMenuItem>
 
                     {/* 🔥 NUEVA SECCIÓN MOBILE */}

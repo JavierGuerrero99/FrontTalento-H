@@ -10,16 +10,11 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, onViewDetails }: JobCardProps) {
-  // Calcular días desde publicación
-  const daysAgo = Math.floor(
-    (new Date().getTime() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24)
-  );
-  
-  const timeAgoText = daysAgo === 0 
-    ? "Hoy" 
-    : daysAgo === 1 
-    ? "Hace 1 día" 
-    : `Hace ${daysAgo} días`;
+  // Formatear fecha de expiración/publicación como DD/MM/AAAA
+  const posted = job.postedDate ? new Date(job.postedDate) : null;
+  const formattedDate = posted
+    ? `${String(posted.getDate()).padStart(2, "0")}/${String(posted.getMonth() + 1).padStart(2, "0")}/${posted.getFullYear()}`
+    : "Fecha no disponible";
 
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails(job)}>
@@ -53,7 +48,7 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span>{timeAgoText}</span>
+            <span>{formattedDate}</span>
           </div>
         </div>
 

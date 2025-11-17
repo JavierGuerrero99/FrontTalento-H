@@ -6,6 +6,11 @@ import { LoginForm } from "./components/LoginForm";
 import { PasswordRecover } from "./components/PasswordRecover";
 import { ProfileSection } from "./components/ProfileSection";
 import { JobListings } from "./components/JobListings";
+import { CompanyCard } from "./components/CompanyCard";
+import { CompanyList } from "./components/CompanyList";
+import { CreateVacancyForm } from "./components/CreateVacancyForm";
+import { VacancyDetail } from "./components/VacancyDetail";
+import { VacantesEmpresa } from "./components/VacantesEmpresa";
 export default function App() {
 
   // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
@@ -43,6 +48,58 @@ export default function App() {
             </div>
           )}
 
+          {activeSection === "mis-empresas" && (
+            <div className="w-full flex flex-col items-center gap-6">
+              <div className="text-center space-y-2">
+                <h1 className="text-primary">Mis Empresas</h1>
+                <p className="text-muted-foreground">
+                  Gestiona todas tus empresas registradas
+                </p>
+              </div>
+              <div className="w-full max-w-6xl">
+                <CompanyList
+                  onSelectCompany={(id) => setActiveSection(`empresa-${id}`)}
+                  onCreateVacancy={(id) => setActiveSection(`empresa-${id}-crear-vacante`)}
+                  onListVacancies={(id) => setActiveSection(`empresa-${id}-vacantes`)}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeSection.startsWith("empresa-") && (() => {
+            const parts = activeSection.split("-");
+            const id = Number(parts[1]);
+            if (activeSection.endsWith("crear-vacante")) {
+              return (
+                <div className="w-full flex flex-col items-center gap-6">
+                  <div className="text-center space-y-2">
+                    <h1 className="text-primary">Crear Vacante</h1>
+                    <p className="text-muted-foreground">Completa los datos de la vacante para la empresa seleccionada</p>
+                  </div>
+                  <CreateVacancyForm companyId={id} onCreated={() => setActiveSection("trabajos")} onNavigate={(path) => setActiveSection(path)} />
+                </div>
+              );
+            }
+            if (activeSection.endsWith("vacantes")) {
+              return (
+                <div className="w-full flex flex-col items-center gap-6">
+                  <div className="text-center space-y-2">
+                    <h1 className="text-primary">Vacantes de la Empresa</h1>
+                  </div>
+                  <VacantesEmpresa empresaId={id} />
+                </div>
+              );
+            }
+            return (
+              <div className="w-full flex flex-col items-center gap-6">
+                <div className="text-center space-y-2">
+                  <h1 className="text-primary">Detalle de Empresa</h1>
+                </div>
+                <CompanyCard companyId={id} />
+              </div>
+            );
+          })()}
+
           {activeSection === "empresas" && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
@@ -51,15 +108,22 @@ export default function App() {
                   Registra y administra las empresas en Talento-Hub
                 </p>
               </div>
-              <CompanyRegistrationForm 
-                onRegistrationSuccess={() => {
-                  setIsAuthenticated(true);
-                  try { localStorage.setItem("isAuthenticated", "true"); } catch {}
-                  setActiveSection("trabajos");
-                }}
-              />
+              <CompanyRegistrationForm />
             </div>
           )}
+
+          {activeSection.startsWith("vacante-") && (() => {
+            const parts = activeSection.split("-");
+            const id = Number(parts[1]);
+            return (
+              <div className="w-full flex flex-col items-center gap-6">
+                <div className="text-center space-y-2">
+                  <h1 className="text-primary">Detalle de Vacante</h1>
+                </div>
+                <VacancyDetail vacancyId={id} onBack={() => setActiveSection("trabajos")} />
+              </div>
+            );
+          })()}
           
           {activeSection === "perfil" && (
             <div className="w-full flex flex-col items-center gap-6">

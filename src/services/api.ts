@@ -126,7 +126,8 @@ export const getUserCompanies = async () => {
 // Función para listar todas las empresas
 export const listCompanies = async () => {
   try {
-    const response = await api.get("/empresas/");
+    const host = BASE_URL.replace(/\/api\/?$/i, "");
+    const response = await api.get(`${host}/empresas/`);
     return response.data; // Asumimos que el backend devuelve un array de empresas
   } catch (error) {
     const err = error as any;
@@ -214,10 +215,45 @@ export const getProfile = async () => {
   }
 };
 
+// Obtener datos adicionales del perfil
+export const getAdditionalProfile = async () => {
+  try {
+    const resp = await api.get("/perfil_adicional/");
+    return resp.data;
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al obtener el perfil adicional:", err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
+// Actualizar datos adicionales del perfil (por ejemplo teléfono, ubicación, documento, hoja de vida)
+export const updateAdditionalProfile = async (payload: any) => {
+  try {
+    const isFormData = typeof FormData !== "undefined" && payload instanceof FormData;
+    const resp = await api.put("/perfil_adicional/", payload, {
+      headers: isFormData
+        ? { "Content-Type": "multipart/form-data" }
+        : undefined,
+    });
+    return resp.data;
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al actualizar el perfil adicional:", err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
 // Actualizar datos de un usuario concreto (usa /api/users/{id}/)
+// Soporta tanto JSON como FormData (por ejemplo, para subir hoja de vida)
 export const updateProfile = async (id: number, payload: any) => {
   try {
-    const resp = await api.put(`/users/${id}/`, payload);
+    const isFormData = typeof FormData !== "undefined" && payload instanceof FormData;
+    const resp = await api.put(`/users/${id}/`, payload, {
+      headers: isFormData
+        ? { "Content-Type": "multipart/form-data" }
+        : undefined,
+    });
     return resp.data;
   } catch (error) {
     const err = error as any;

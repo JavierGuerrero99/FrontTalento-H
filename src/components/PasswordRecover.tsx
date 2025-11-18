@@ -8,6 +8,7 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Mail } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
+import api from "../services/api";
 
 const recoverSchema = z.object({
   email: z.string().min(1, "El correo es obligatorio").email("Correo inválido"),
@@ -30,19 +31,24 @@ export function PasswordRecover({ onBack }: { onBack?: () => void }) {
     setMessage(null);
 
     try {
-      // Aquí llamarías al endpoint backend para envío de email de recuperación
-      // Ejemplo: await api.post('/auth/password/reset/', { email: data.email });
-      await new Promise((r) => setTimeout(r, 1000));
-      setMessage('Si existe una cuenta con ese correo, recibirás instrucciones para reestablecer la contraseña.');
+      await api.post("/auth/password-reset/", { email: data.email });
+      setMessage("Si existe una cuenta con ese correo, recibirás instrucciones para restablecer la contraseña.");
     } catch (err: any) {
-      setError('Error al solicitar recuperación. Intenta nuevamente.');
+      console.error("Error en recuperación de contraseña", err?.response || err);
+      const detail = err?.response?.data?.detail || err?.response?.data?.error;
+      setError(
+        typeof detail === "string"
+          ? detail
+          : "Error al solicitar recuperación. Intenta nuevamente."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <div className="w-full flex justify-center">
+      <Card className="w-full max-w-xs sm:max-w-sm">
       <CardHeader className="space-y-1">
         <CardTitle className="text-center">Recuperar Contraseña</CardTitle>
         <CardDescription className="text-center">Ingresa tu correo para recibir instrucciones</CardDescription>
@@ -78,6 +84,7 @@ export function PasswordRecover({ onBack }: { onBack?: () => void }) {
           </div>
         </form>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

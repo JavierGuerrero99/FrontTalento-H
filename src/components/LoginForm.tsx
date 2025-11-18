@@ -70,7 +70,8 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <div className="w-full flex justify-center">
+      <Card className="w-full max-w-xs sm:max-w-sm">
       <CardHeader className="space-y-1">
         <div className="flex items-center justify-center mb-4">
           <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
@@ -152,6 +153,7 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
           </div>
         </form>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

@@ -6,7 +6,12 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User, Mail, Upload } from "lucide-react";
-import { getProfile, updateProfile } from "../services/api";
+import {
+  getProfile,
+  updateProfile,
+  getAdditionalProfile,
+  updateAdditionalProfile,
+} from "../services/api";
 
 export function ProfileSection() {
   const [loading, setLoading] = useState(true);
@@ -20,13 +25,24 @@ export function ProfileSection() {
     apellidos: "",
     email: "",
     avatar_url: "",
+    telefono: "",
+    ubicacion: "",
+    documento: "",
+    hoja_vida_url: "",
   });
+  const [cvFile, setCvFile] = useState<File | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const data = await getProfile();
+        const [data, additional] = await Promise.all([
+          getProfile(),
+          getAdditionalProfile().catch((err) => {
+            console.error("Error cargando perfil adicional", err);
+            return null;
+          }),
+        ]);
         if (!mounted) return;
         setProfile({
           id: data.id,
@@ -34,7 +50,15 @@ export function ProfileSection() {
           nombres: data.nombres || data.first_name || data.primer_nombre || data.nombre || "",
           apellidos: data.apellidos || data.last_name || data.segundo_nombre || "",
           email: data.email || "",
-          avatar_url: data.avatar_url || "",
+          avatar_url: additional?.foto_perfil || data.avatar_url || "",
+          telefono:
+            additional?.telefono || data.telefono || data.phone || "",
+          ubicacion:
+            additional?.ubicacion || data.ubicacion || data.location || "",
+          documento:
+            additional?.documento || data.documento || data.document || "",
+          hoja_vida_url:
+            additional?.hoja_vida_url || additional?.cv_url || data.hoja_vida_url || data.cv_url || "",
         });
         setError(null);
       } catch (e) {
@@ -55,13 +79,46 @@ export function ProfileSection() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = {
+      // 1) Actualizar datos básicos del perfil
+      const basicPayload = {
         first_name: profile.nombres.trim(),
         last_name: profile.apellidos.trim(),
         email: profile.email.trim(),
       };
-      const updated = await updateProfile(profile.id, payload);
-      setProfile((prev) => ({ ...prev, ...updated, id: profile.id }));
+      const updatedBasic = await updateProfile(profile.id, basicPayload);
+
+      // 2) Actualizar datos adicionales (teléfono, ubicación, documento, hoja de vida)
+      const hasCv = !!cvFile;
+      let additionalPayload: any;
+
+      if (hasCv) {
+        const formData = new FormData();
+        if (profile.telefono.trim()) formData.append("telefono", profile.telefono.trim());
+        if (profile.ubicacion.trim()) formData.append("ubicacion", profile.ubicacion.trim());
+        if (profile.documento.trim()) formData.append("documento", profile.documento.trim());
+        formData.append("hoja_vida", cvFile);
+        additionalPayload = formData;
+      } else {
+        additionalPayload = {
+          telefono: profile.telefono.trim() || null,
+          ubicacion: profile.ubicacion.trim() || null,
+          documento: profile.documento.trim() || null,
+        };
+      }
+
+      const updatedAdditional = await updateAdditionalProfile(additionalPayload);
+
+      setProfile((prev) => ({
+        ...prev,
+        ...updatedBasic,
+        telefono: updatedAdditional.telefono ?? prev.telefono,
+        ubicacion: updatedAdditional.ubicacion ?? prev.ubicacion,
+        documento: updatedAdditional.documento ?? prev.documento,
+        hoja_vida_url:
+          updatedAdditional.hoja_vida_url || updatedAdditional.cv_url || prev.hoja_vida_url,
+        id: profile.id,
+      }));
+      setCvFile(null);
       setError(null);
       setSuccess("Perfil actualizado correctamente");
     } catch (e) {
@@ -189,6 +246,75 @@ export function ProfileSection() {
             >
               Cancelar
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Datos adicionales */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Datos adicionales</CardTitle>
+          <CardDescription>
+            Información complementaria para tu perfil profesional
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="telefono">Teléfono</Label>
+              <Input
+                id="telefono"
+                placeholder="Ej: +57 300 123 4567"
+                value={profile.telefono}
+                onChange={(e) => handleChange("telefono", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ubicacion">Ubicación</Label>
+              <Input
+                id="ubicacion"
+                placeholder="Ej: Bogotá, Colombia"
+                value={profile.ubicacion}
+                onChange={(e) => handleChange("ubicacion", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="documento">Documento</Label>
+              <Input
+                id="documento"
+                placeholder="Ej: CC 1234567890"
+                value={profile.documento}
+                onChange={(e) => handleChange("documento", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="hoja_vida">Hoja de vida</Label>
+              <Input
+                id="hoja_vida"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setCvFile(file);
+                }}
+              />
+              {profile.hoja_vida_url && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Archivo actual: {" "}
+                  <a
+                    href={profile.hoja_vida_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    Ver hoja de vida
+                  </a>
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

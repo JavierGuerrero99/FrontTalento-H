@@ -20,6 +20,7 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
   const [editMode, setEditMode] = useState(false);
   const [formName, setFormName] = useState("");
   const [formDireccion, setFormDireccion] = useState("");
+  const [formDescripcion, setFormDescripcion] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,6 +60,7 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
   const onStartEdit = () => {
     setFormName(company?.nombre || company?.name || "");
     setFormDireccion(company?.direccion || "");
+    setFormDescripcion(company?.descripcion || "");
     setLogoPreview(getLogoUrl(company) || null);
     setLogoFile(null);
     setEditMode(true);
@@ -95,11 +97,16 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
       setValidationError("La dirección es obligatoria");
       return;
     }
+    if (!formDescripcion.trim()) {
+      setValidationError("La descripción es obligatoria");
+      return;
+    }
 
     try {
       const fd = new FormData();
       fd.append("nombre", formName);
       fd.append("direccion", formDireccion);
+      fd.append("descripcion", formDescripcion);
       if (logoFile) fd.append("logo", logoFile);
       setIsSaving(true);
       const updated = await updateCompany(companyId, fd);
@@ -192,6 +199,16 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
             <div>
               <Label htmlFor="direccion">Dirección</Label>
               <Input id="direccion" value={formDireccion} onChange={(e) => setFormDireccion(e.target.value)} />
+            </div>
+
+            <div>
+              <Label htmlFor="descripcion">Descripción</Label>
+              <textarea
+                id="descripcion"
+                className="w-full border rounded-md px-3 py-2 text-sm min-h-[100px]"
+                value={formDescripcion}
+                onChange={(e) => setFormDescripcion(e.target.value)}
+              />
             </div>
 
             <div>

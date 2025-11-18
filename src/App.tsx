@@ -14,6 +14,7 @@ import { VacancyDetail } from "./components/VacancyDetail";
 import { VacantesEmpresa } from "./components/VacantesEmpresa";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "./components/ui/dialog";
 import { Button } from "./components/ui/button";
+import { ResetPasswordForm } from "./components/ResetPasswordForm";
 export default function App() {
 
   // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
@@ -21,6 +22,12 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<string>(() => (localStorage.getItem("access_token") ? "trabajos" : "login"));
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
+
+  // Detectar si estamos en la URL de reset de contraseña enviada por correo
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const resetMatch = pathname.match(/^\/reset-password\/([^/]+)\/([^/]+)\/?$/);
+  const resetUid = resetMatch?.[1] || null;
+  const resetToken = resetMatch?.[2] || null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -41,6 +48,21 @@ export default function App() {
       
       <main className="py-8 px-4">
         <div className="flex flex-col items-center">
+          {resetUid && resetToken ? (
+            <div className="w-full flex flex-col items-center gap-6">
+              <ResetPasswordForm
+                uid={resetUid}
+                token={resetToken}
+                onGoToLogin={() => {
+                  setActiveSection("login");
+                  if (typeof window !== "undefined") {
+                    window.history.pushState({}, "", "/");
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <>
           {activeSection === "trabajos" && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
@@ -218,6 +240,8 @@ export default function App() {
                 }}
               />
             </div>
+          )}
+          </>
           )}
         </div>
       </main>

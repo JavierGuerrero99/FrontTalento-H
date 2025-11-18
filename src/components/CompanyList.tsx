@@ -3,18 +3,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Button } from "./ui/button";
+import { AssignEmployeesDialog } from "./AssignEmployeesDialog";
 import { getUserCompanies, makeAbsoluteUrl } from "../services/api";
 
 interface CompanyListProps {
   onSelectCompany?: (companyId: number) => void;
   onCreateVacancy?: (companyId: number) => void;
   onListVacancies?: (companyId: number) => void;
+  onAssignEmployees?: (companyId: number) => void;
 }
 
-export function CompanyList({ onSelectCompany, onCreateVacancy, onListVacancies }: CompanyListProps) {
+export function CompanyList({ onSelectCompany, onCreateVacancy, onListVacancies, onAssignEmployees }: CompanyListProps) {
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [activeCompanyId, setActiveCompanyId] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -67,8 +71,18 @@ export function CompanyList({ onSelectCompany, onCreateVacancy, onListVacancies 
   if (!companies || companies.length === 0)
     return <div className="text-center py-8 text-muted-foreground">No tienes empresas registradas</div>;
 
+  const handleAssignEmployees = (companyId: number) => {
+    if (onAssignEmployees) {
+      onAssignEmployees(companyId);
+      return;
+    }
+    setActiveCompanyId(companyId);
+    setAssignDialogOpen(true);
+  };
+
   return (
-    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <>
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {companies.map((company) => (
         <Card key={company.id} className="flex flex-col hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-col items-center text-center">
@@ -113,23 +127,44 @@ export function CompanyList({ onSelectCompany, onCreateVacancy, onListVacancies 
                   Crear vacante
                 </Button>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full"
-                onClick={() =>
-                  onListVacancies
-                    ? onListVacancies(company.id)
-                    : (window.location.hash = `empresa-${company.id}-vacantes`)
-                }
-              >
-                Listar vacantes
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() =>
+                    onListVacancies
+                      ? onListVacancies(company.id)
+                      : (window.location.hash = `empresa-${company.id}-vacantes`)
+                  }
+                >
+                  Listar vacantes
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleAssignEmployees(company.id)}
+                >
+                  Agregar empleados
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       ))}
-    </div>
+      </div>
+      <AssignEmployeesDialog
+        open={assignDialogOpen}
+        companyId={activeCompanyId}
+        onOpenChange={(nextOpen) => {
+          setAssignDialogOpen(nextOpen);
+          if (!nextOpen) {
+            setActiveCompanyId(null);
+          }
+        }}
+      />
+    </>
   );
 }
 

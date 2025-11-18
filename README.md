@@ -1,35 +1,93 @@
 
-  # HU-001-Crear formulario
+  <div align="center">
 
-  This is a code bundle for HU-001-Crear formulario. The original project is available at https://www.figma.com/design/nUuuUt2CSPSMISnucvoHpG/HU-001-Crear-formulario.
+  # Talento‑Hub Frontend
 
-  ## Running the code
+  Interfaz web para la gestión de vacantes, empresas y candidatos.
 
-  Run `npm i` to install the dependencies.
+  Repositorio basado en la HU‑001 **"Crear formulario"**.
 
-  Run `npm run dev` to start the development server.
-  
+  [Diseño en Figma](https://www.figma.com/design/nUuuUt2CSPSMISnucvoHpG/HU-001-Crear-formulario)
 
-## Environment variables
+  </div>
 
-This project uses Vite environment variables prefixed with `VITE_`. Do not commit secret keys or credentials.
+  ---
 
-To create a local `.env` file from the example (PowerShell):
+  ## 🚀 Cómo ejecutar el proyecto
 
-```powershell
-# copy .env.example to .env (PowerShell)
-Copy-Item -Path .env.example -Destination .env -Force
+  1. **Instalar dependencias**
 
-# then edit .env with your local values (use an editor like code . or notepad)
-code .env
-```
+     ```powershell
+     npm install
+     ```
 
-If you accidentally committed secrets, rotate those credentials immediately and remove the file from the repo history.
+  2. **Levantar el servidor de desarrollo**
 
-## Lockfile and package manager
+     ```powershell
+     npm run dev
+     ```
 
-This project uses npm as the package manager. To ensure reproducible installs across machines and CI, commit the `package-lock.json` file to the repository. Do not mix package managers (npm, yarn, pnpm) in the same project — choose one and stick to it.
+     Por defecto Vite arranca en `http://localhost:5173` (o el puerto que te indique la consola).
 
-Tips:
-- Install dependencies with `npm ci` in CI for a clean, deterministic install from `package-lock.json`.
-- If you switch to another manager (yarn or pnpm), commit its lockfile and remove `package-lock.json` to avoid confusion.
+  ---
+
+  ## ⚙️ Variables de entorno
+
+  Este proyecto usa variables de entorno de Vite, siempre con el prefijo `VITE_`.
+
+  > ⚠️ **Importante:** no subas al repositorio llaves secretas, tokens ni credenciales.
+
+  Para crear tu archivo `.env` local desde el ejemplo (PowerShell):
+
+  ```powershell
+  # Copiar .env.example a .env
+  Copy-Item -Path .env.example -Destination .env -Force
+
+  # Editar .env con tus valores locales
+  code .env
+  ```
+
+  Si llegas a cometer un secreto por error, rota las credenciales de inmediato y limpia el historial del repositorio.
+
+  ---
+
+  ## 📦 Gestor de paquetes
+
+  Este proyecto utiliza **npm** como gestor de paquetes.
+
+  - Se recomienda **confirmar** el archivo `package-lock.json` en el repositorio.
+  - No mezcles gestores (npm, yarn, pnpm) en el mismo proyecto.
+
+  Algunos tips:
+
+  - En CI, usa:
+
+    ```powershell
+    npm ci
+    ```
+
+    para instalaciones limpias y determinísticas basadas en `package-lock.json`.
+
+  - Si alguna vez cambias de gestor, confirma el nuevo lockfile y elimina `package-lock.json` para evitar confusiones.
+
+  ---
+
+  ## 🧩 Stack principal
+
+  - **Framework:** React + TypeScript (Vite)
+  - **Estilos:** Tailwind / componentes tipo shadcn
+  - **Gestor de paquetes:** npm
+
+  ---
+
+  ## 📚 Notas
+
+  - Asegúrate de tener Node.js actualizado.
+  - Si algo no arranca, borra `node_modules` y el lockfile y reinstala:
+
+    ```powershell
+    Remove-Item -Recurse -Force node_modules
+    Remove-Item package-lock.json
+    npm install
+    ```
+

@@ -1,21 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { User, Mail, Upload } from "lucide-react";
-import {
+import { User, Mail, Upload, Pencil } from "lucide-react";
+import api, {
   getProfile,
   updateProfile,
   getAdditionalProfile,
   updateAdditionalProfile,
+  makeAbsoluteUrl,
 } from "../services/api";
 
 export function ProfileSection() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingAdditional, setSavingAdditional] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [cvLoading, setCvLoading] = useState<"download" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [profile, setProfile] = useState({
@@ -31,6 +35,16 @@ export function ProfileSection() {
     hoja_vida_url: "",
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [editingAdditional, setEditingAdditional] = useState(false);
+  const [originalAdditional, setOriginalAdditional] = useState({
+    telefono: "",
+    ubicacion: "",
+    documento: "",
+    hoja_vida_url: "",
+    foto_perfil: "",
+  });
+  const resumeBlobUrlRef = useRef<{ url: string; timestamp: number } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -58,7 +72,27 @@ export function ProfileSection() {
           documento:
             additional?.documento || data.documento || data.document || "",
           hoja_vida_url:
-            additional?.hoja_vida_url || additional?.cv_url || data.hoja_vida_url || data.cv_url || "",
+            additional?.hoja_vida ||
+            additional?.hoja_vida_url ||
+            additional?.cv_url ||
+            data.hoja_vida ||
+            data.hoja_vida_url ||
+            data.cv_url ||
+            "",
+        });
+        setOriginalAdditional({
+          telefono: additional?.telefono || data.telefono || data.phone || "",
+          ubicacion: additional?.ubicacion || data.ubicacion || data.location || "",
+          documento: additional?.documento || data.documento || data.document || "",
+          hoja_vida_url:
+            additional?.hoja_vida ||
+            additional?.hoja_vida_url ||
+            additional?.cv_url ||
+            data.hoja_vida ||
+            data.hoja_vida_url ||
+            data.cv_url ||
+            "",
+          foto_perfil: additional?.foto_perfil || data.avatar_url || "",
         });
         setError(null);
       } catch (e) {
@@ -115,7 +149,10 @@ export function ProfileSection() {
         ubicacion: updatedAdditional.ubicacion ?? prev.ubicacion,
         documento: updatedAdditional.documento ?? prev.documento,
         hoja_vida_url:
-          updatedAdditional.hoja_vida_url || updatedAdditional.cv_url || prev.hoja_vida_url,
+          updatedAdditional.hoja_vida ||
+            updatedAdditional.hoja_vida_url ||
+            updatedAdditional.cv_url ||
+            prev.hoja_vida_url,
         id: profile.id,
       }));
       setCvFile(null);
@@ -127,6 +164,151 @@ export function ProfileSection() {
       setSaving(false);
     }
   };
+
+  const handleSaveAdditional = async () => {
+    setSavingAdditional(true);
+    try {
+      const hasCv = !!cvFile;
+      let additionalPayload: any;
+      if (hasCv) {
+        const formData = new FormData();
+        if (profile.telefono.trim()) formData.append("telefono", profile.telefono.trim());
+        if (profile.ubicacion.trim()) formData.append("ubicacion", profile.ubicacion.trim());
+        if (profile.documento.trim()) formData.append("documento", profile.documento.trim());
+        formData.append("hoja_vida", cvFile);
+        additionalPayload = formData;
+      } else {
+        additionalPayload = {
+          telefono: profile.telefono.trim() || null,
+          ubicacion: profile.ubicacion.trim() || null,
+          documento: profile.documento.trim() || null,
+        };
+      }
+
+      const updatedAdditional = await updateAdditionalProfile(additionalPayload);
+      setProfile((prev) => ({
+        ...prev,
+        telefono: updatedAdditional.telefono ?? prev.telefono,
+        ubicacion: updatedAdditional.ubicacion ?? prev.ubicacion,
+        documento: updatedAdditional.documento ?? prev.documento,
+        hoja_vida_url:
+          updatedAdditional.hoja_vida ||
+            updatedAdditional.hoja_vida_url ||
+            updatedAdditional.cv_url ||
+            prev.hoja_vida_url,
+      }));
+      setOriginalAdditional((prev) => ({
+        ...prev,
+        telefono: updatedAdditional.telefono ?? profile.telefono,
+        ubicacion: updatedAdditional.ubicacion ?? profile.ubicacion,
+        documento: updatedAdditional.documento ?? profile.documento,
+        hoja_vida_url:
+          updatedAdditional.hoja_vida ||
+            updatedAdditional.hoja_vida_url ||
+            updatedAdditional.cv_url ||
+            profile.hoja_vida_url,
+      }));
+      setCvFile(null);
+      setSuccess("Datos adicionales actualizados correctamente");
+      setError(null);
+      setEditingAdditional(false);
+    } catch (e) {
+      setError("Error al actualizar los datos adicionales");
+    } finally {
+      setSavingAdditional(false);
+    }
+  };
+
+  const handleCancelAdditional = () => {
+    setProfile((prev) => ({
+      ...prev,
+      telefono: originalAdditional.telefono,
+      ubicacion: originalAdditional.ubicacion,
+      documento: originalAdditional.documento,
+      hoja_vida_url: originalAdditional.hoja_vida_url,
+      avatar_url: originalAdditional.foto_perfil || prev.avatar_url,
+    }));
+    setCvFile(null);
+    setEditingAdditional(false);
+  };
+
+  const handleAvatarButtonClick = () => {
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    setAvatarUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("foto_perfil", file);
+      const updated = await updateAdditionalProfile(formData);
+      const newAvatar = updated?.foto_perfil || updated?.avatar_url || profile.avatar_url;
+      setProfile((prev) => ({
+        ...prev,
+        avatar_url: newAvatar,
+      }));
+      setOriginalAdditional((prev) => ({
+        ...prev,
+        foto_perfil: newAvatar,
+      }));
+      setSuccess("Foto de perfil actualizada correctamente");
+    } catch (uploadError) {
+      console.error(uploadError);
+      setError("No se pudo actualizar la foto de perfil");
+    } finally {
+      setAvatarUploading(false);
+      event.target.value = "";
+    }
+  };
+  const currentCvUrl = makeAbsoluteUrl(profile.hoja_vida_url);
+
+  const fetchCvBlob = async () => {
+    if (!currentCvUrl) return null;
+    if (resumeBlobUrlRef.current) {
+      return resumeBlobUrlRef.current.url;
+    }
+    try {
+      const response = await api.get(currentCvUrl, {
+        responseType: "blob",
+      });
+      const blob = response.data as Blob;
+      const blobUrl = URL.createObjectURL(blob);
+      resumeBlobUrlRef.current = { url: blobUrl, timestamp: Date.now() };
+      return blobUrl;
+    } catch (cvError) {
+      console.error(cvError);
+      setError("No se pudo cargar el documento PDF.");
+      return null;
+    }
+  };
+
+  const handleDownloadCv = async () => {
+    if (!currentCvUrl || cvLoading) return;
+    setError(null);
+    setCvLoading("download");
+    let blobUrl = await fetchCvBlob();
+    if (blobUrl) {
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = "hoja_de_vida.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => {
+        if (resumeBlobUrlRef.current && resumeBlobUrlRef.current.url === blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+          resumeBlobUrlRef.current = null;
+        }
+      }, 1000);
+    }
+    setCvLoading(null);
+  };
+
   if (loading) {
     return (
       <div className="w-full max-w-4xl mx-auto py-10 text-center text-muted-foreground">
@@ -164,10 +346,22 @@ export function ProfileSection() {
               </AvatarFallback>
             </Avatar>
             <div className="space-y-2">
-              <Button variant="outline" className="gap-2">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleAvatarButtonClick}
+                disabled={avatarUploading}
+              >
                 <Upload className="w-4 h-4" />
-                Cambiar foto
+                {avatarUploading ? "Subiendo..." : "Cambiar foto"}
               </Button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
               <p className="text-muted-foreground text-sm">
                 JPG, PNG o GIF. Máximo 5MB.
               </p>
@@ -252,11 +446,27 @@ export function ProfileSection() {
 
       {/* Datos adicionales */}
       <Card>
-        <CardHeader>
-          <CardTitle>Datos adicionales</CardTitle>
-          <CardDescription>
-            Información complementaria para tu perfil profesional
-          </CardDescription>
+        <CardHeader className="space-y-2">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Datos adicionales</CardTitle>
+              <CardDescription>
+                Información complementaria para tu perfil profesional
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              {!editingAdditional && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setEditingAdditional(true)}
+                  className="gap-1"
+                >
+                  <Pencil className="w-3 h-3" /> Editar
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -267,6 +477,8 @@ export function ProfileSection() {
                 placeholder="Ej: +57 300 123 4567"
                 value={profile.telefono}
                 onChange={(e) => handleChange("telefono", e.target.value)}
+                disabled={!editingAdditional}
+                className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
               />
             </div>
 
@@ -277,6 +489,8 @@ export function ProfileSection() {
                 placeholder="Ej: Bogotá, Colombia"
                 value={profile.ubicacion}
                 onChange={(e) => handleChange("ubicacion", e.target.value)}
+                disabled={!editingAdditional}
+                className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
               />
             </div>
 
@@ -287,6 +501,8 @@ export function ProfileSection() {
                 placeholder="Ej: CC 1234567890"
                 value={profile.documento}
                 onChange={(e) => handleChange("documento", e.target.value)}
+                disabled={!editingAdditional}
+                className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
               />
             </div>
 
@@ -299,23 +515,60 @@ export function ProfileSection() {
                 onChange={(e) => {
                   const file = e.target.files?.[0] || null;
                   setCvFile(file);
+                  resumeBlobUrlRef.current = null;
                 }}
+                disabled={!editingAdditional}
+                className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
               />
-              {profile.hoja_vida_url && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Archivo actual: {" "}
-                  <a
-                    href={profile.hoja_vida_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline"
-                  >
-                    Ver hoja de vida
-                  </a>
-                </p>
+              {currentCvUrl && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    Archivo actual disponible
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={handleDownloadCv}
+                      disabled={cvLoading !== null}
+                    >
+                      {cvLoading === "download" ? "Descargando..." : "Descargar"}
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
+          {!editingAdditional && (
+            <p className="text-xs text-muted-foreground">
+              Estos campos están bloqueados. Pulsa Editar para modificarlos.
+            </p>
+          )}
+          {editingAdditional && (
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleSaveAdditional}
+                  disabled={savingAdditional}
+                  variant="outline"
+                  className="flex-1 bg-white text-black hover:bg-muted border border-input shadow-sm"
+                >
+                  {savingAdditional ? "Guardando datos..." : "Guardar datos adicionales"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelAdditional}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Al guardar se actualizarán teléfono, ubicación, documento y hoja de vida.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

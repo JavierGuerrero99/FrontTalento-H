@@ -123,6 +123,34 @@ export const getUserCompanies = async () => {
   }
 };
 
+// Obtener todos los usuarios disponibles para asignaciones (endpoint sin prefijo /api)
+export const listUsers = async () => {
+  try {
+    const host = BASE_URL.replace(/\/api\/?$/i, "");
+    const response = await api.get(`${host}/usuarios/`);
+    return response.data;
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al listar usuarios:", err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
+// Asignar rol y empresa a un usuario concreto
+export const assignUserRole = async (
+  userId: number,
+  payload: { role: string; id_empresa: number | null }
+) => {
+  try {
+    const response = await api.patch(`/usuarios/${userId}/`, payload);
+    return response.data;
+  } catch (error) {
+    const err = error as any;
+    console.error(`Error al asignar rol al usuario ${userId}:`, err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
 // Función para listar todas las empresas
 export const listCompanies = async () => {
   try {
@@ -231,7 +259,7 @@ export const getAdditionalProfile = async () => {
 export const updateAdditionalProfile = async (payload: any) => {
   try {
     const isFormData = typeof FormData !== "undefined" && payload instanceof FormData;
-    const resp = await api.put("/perfil_adicional/", payload, {
+    const resp = await api.patch("/perfil_adicional/", payload, {
       headers: isFormData
         ? { "Content-Type": "multipart/form-data" }
         : undefined,

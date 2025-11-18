@@ -123,6 +123,18 @@ export const getUserCompanies = async () => {
   }
 };
 
+// Función para listar todas las empresas
+export const listCompanies = async () => {
+  try {
+    const response = await api.get("/empresas/");
+    return response.data; // Asumimos que el backend devuelve un array de empresas
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al listar las empresas:", err.response?.status, err.response?.data || err);
+    throw error;
+  }
+}
+
 // Obtener una empresa por id
 export const getCompanyById = async (id: number) => {
   try {

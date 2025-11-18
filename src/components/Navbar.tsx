@@ -167,7 +167,7 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                   className="gap-2"
                 >
                   <Building2 className="w-4 h-4" />
-                  Crear empresa
+                  Empresas
                 </Button>
 
                 {/* 🔥 NUEVA SECCIÓN: MIS EMPRESAS */}
@@ -243,7 +243,7 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                       className="gap-2 cursor-pointer"
                     >
                       <Building2 className="w-4 h-4" />
-                      Crear empresa
+                      Empresas
                     </DropdownMenuItem>
 
                     {/* 🔥 NUEVA SECCIÓN MOBILE */}

@@ -8,14 +8,19 @@ import { ProfileSection } from "./components/ProfileSection";
 import { JobListings } from "./components/JobListings";
 import { CompanyCard } from "./components/CompanyCard";
 import { CompanyList } from "./components/CompanyList";
+import { CompaniesList } from "./components/CompaniesList";
 import { CreateVacancyForm } from "./components/CreateVacancyForm";
 import { VacancyDetail } from "./components/VacancyDetail";
 import { VacantesEmpresa } from "./components/VacantesEmpresa";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "./components/ui/dialog";
+import { Button } from "./components/ui/button";
 export default function App() {
 
   // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem("access_token"));
   const [activeSection, setActiveSection] = useState<string>(() => (localStorage.getItem("access_token") ? "trabajos" : "login"));
+  const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -103,12 +108,43 @@ export default function App() {
           {activeSection === "empresas" && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
-                <h1 className="text-primary">Gestión de Empresas</h1>
+                <h1 className="text-primary">Empresas</h1>
                 <p className="text-muted-foreground">
-                  Registra y administra las empresas en Talento-Hub
+                  Consulta y registra empresas en Talento-Hub
                 </p>
               </div>
-              <CompanyRegistrationForm />
+              <div className="w-full max-w-4xl space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  {/* Buscador empresas */}
+                  <div className="w-full sm:flex-1">
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre de empresa..."
+                      className="w-full border rounded-md px-3 py-2 text-sm"
+                      value={companySearchTerm}
+                      onChange={(e) => setCompanySearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {/* Botón crear empresa */}
+                  <div className="w-full sm:w-auto flex justify-end">
+                    <Dialog open={isCreateCompanyOpen} onOpenChange={setIsCreateCompanyOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full sm:w-auto">
+                          Crear empresa
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogTitle>Registrar empresa</DialogTitle>
+                        <DialogDescription>
+                          Completa la información para registrar una nueva empresa.
+                        </DialogDescription>
+                        <CompanyRegistrationForm />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+                <CompaniesList searchTerm={companySearchTerm} />
+              </div>
             </div>
           )}
 

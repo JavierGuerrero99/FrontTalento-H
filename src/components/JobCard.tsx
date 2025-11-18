@@ -17,7 +17,7 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
     : "Fecha no disponible";
 
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails(job)}>
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col flex-1" onClick={() => onViewDetails(job)}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
@@ -32,7 +32,7 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex flex-col flex-1">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="w-4 h-4" />
@@ -69,7 +69,7 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
           </div>
         </div>
 
-        <Button className="w-full" onClick={(e) => { e.stopPropagation(); onViewDetails(job); }}>
+        <Button className="w-full mt-auto" onClick={(e) => { e.stopPropagation(); onViewDetails(job); }}>
           Ver detalles
         </Button>
       </CardContent>

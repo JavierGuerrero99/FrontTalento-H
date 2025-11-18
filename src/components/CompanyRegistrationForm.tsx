@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Upload, AlertCircle } from "lucide-react";
@@ -26,6 +27,10 @@ const companySchema = z.object({
     .string()
     .min(4, "La dirección es obligatoria")
     .max(120, "La dirección no puede exceder 120 caracteres"),
+  description: z
+    .string()
+    .min(10, "La descripción es obligatoria")
+    .max(1000, "La descripción no puede exceder 1000 caracteres"),
   logo: z.any().optional(),
 });
 
@@ -35,6 +40,7 @@ export function CompanyRegistrationForm() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const {
     register,
@@ -43,6 +49,12 @@ export function CompanyRegistrationForm() {
     reset,
   } = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
+    defaultValues: {
+      companyName: "",
+      nit: "",
+      address: "",
+      description: "",
+    },
   });
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,11 +70,13 @@ export function CompanyRegistrationForm() {
   const onSubmit = async (data: CompanyFormData) => {
     try {
       setError(null);
+      setSuccess(null);
 
       const formData = new FormData();
       formData.append("nombre", data.companyName);
       formData.append("nit", data.nit);
       formData.append("direccion", data.address);
+      formData.append("descripcion", data.description);
 
       if (logoFile) {
         formData.append("logo", logoFile);
@@ -78,8 +92,7 @@ export function CompanyRegistrationForm() {
       reset();
       setLogoPreview(null);
       setLogoFile(null);
-
-      alert("Empresa registrada correctamente");
+      setSuccess("Empresa registrada correctamente");
     } catch (err) {
       console.error(err);
       setError("Error al registrar la empresa. Intenta de nuevo.");
@@ -101,9 +114,14 @@ export function CompanyRegistrationForm() {
 
       <CardContent>
         {error && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {success && (
+          <Alert className="mb-4">
+            <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
 
@@ -153,6 +171,23 @@ export function CompanyRegistrationForm() {
             />
             {errors.address && (
               <p className="text-destructive text-sm">{errors.address.message}</p>
+            )}
+          </div>
+
+          {/* Descripción */}
+          <div className="space-y-2">
+            <Label htmlFor="description">
+              Descripción <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="description"
+              {...register("description")}
+              placeholder="Describe brevemente a qué se dedica la empresa, su misión y principales servicios."
+              className={errors.description ? "border-destructive" : ""}
+              rows={4}
+            />
+            {errors.description && (
+              <p className="text-destructive text-sm">{errors.description.message}</p>
             )}
           </div>
 

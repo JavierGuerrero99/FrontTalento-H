@@ -19,6 +19,20 @@ export const publishVacancy = async (id: number) => {
   return api.patch(url);
 };
 
+// Postularse a una vacante adjuntando hoja de vida
+export const applyToVacancy = async (vacancyId: number, file: File) => {
+  const host = BASE_URL.replace(/\/api\/?$/i, "");
+  const url = `${host}/vacantes/${vacancyId}/postular/`;
+  const formData = new FormData();
+  formData.append("cv", file);
+  // Adjuntar también la clave anterior para compatibilidad retroactiva si el backend la admite
+  formData.append("hoja_vida", file);
+  const response = await api.post(url, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
 // Listar vacantes (sin prefijo /api en la URL; acepta empresa_id opcional)
 export const listVacancies = async (empresa_id?: number) => {
   const host = BASE_URL.replace(/\/api\/?$/i, "");

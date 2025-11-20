@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
@@ -18,6 +18,7 @@ import {
   Bookmark
 } from "lucide-react";
 import type { Job } from "../lib/mockJobs";
+import { applyToVacancy } from "../services/api";
 
 interface JobDetailProps {
   job: Job | null;
@@ -29,16 +30,97 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   if (!job) return null;
 
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [applySuccess, setApplySuccess] = useState<string | null>(null);
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Formatear fecha de expiración/publicación como DD/MM/AAAA
   const posted = job.postedDate ? new Date(job.postedDate) : null;
   const formattedDate = posted
     ? `${String(posted.getDate()).padStart(2, "0")}/${String(posted.getMonth() + 1).padStart(2, "0")}/${posted.getFullYear()}`
     : "Fecha no disponible";
 
-  const handleApply = () => {
-    setInfoMessage(
-      `Aplicando a: ${job.title} en ${job.company}. En una versión completa, aquí se abriría el formulario de aplicación.`
-    );
+  useEffect(() => {
+    if (!open) {
+      setApplyError(null);
+      setApplySuccess(null);
+      setApplying(false);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }, [open]);
+
+  const handleApplyClick = () => {
+    setApplyError(null);
+    setApplySuccess(null);
+    setInfoMessage(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedExtensions = ["pdf", "doc", "docx"];
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      setApplyError("Solo se permiten archivos PDF o Word (.doc, .docx)");
+      event.target.value = "";
+      return;
+    }
+
+    setSelectedFile(file);
+    setApplyError(null);
+    setApplySuccess(null);
+    // Permitir volver a seleccionar el mismo archivo si el usuario cambia de opinión
+    event.target.value = "";
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!selectedFile) return;
+
+    const vacancyId = Number(job.id);
+    if (!Number.isFinite(vacancyId)) {
+      setApplyError("No se pudo identificar la vacante seleccionada");
+      setSelectedFile(null);
+      return;
+    }
+
+    setApplying(true);
+    setApplyError(null);
+    setApplySuccess(null);
+
+    try {
+      const response = await applyToVacancy(vacancyId, selectedFile);
+      const backendMessage = response?.message || response?.detail;
+      setApplySuccess(backendMessage || "Postulación enviada correctamente");
+      setSelectedFile(null);
+    } catch (error: any) {
+      const backendData = error?.response?.data;
+      if (typeof backendData === "string") {
+        setApplyError(backendData);
+      } else if (backendData?.detail) {
+        setApplyError(String(backendData.detail));
+      } else if (backendData?.error) {
+        setApplyError(String(backendData.error));
+      } else {
+        setApplyError("No se pudo completar la postulación. Intenta nuevamente");
+      }
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setSelectedFile(null);
+    setApplyError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSave = () => {
@@ -48,8 +130,60 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] p-0">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
+          onChange={handleFileChange}
+        />
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
+            {applySuccess && (
+              <Alert className="mb-4 border-green-500/60 bg-green-50 text-green-800">
+                <AlertDescription>{applySuccess}</AlertDescription>
+              </Alert>
+            )}
+            {applyError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{applyError}</AlertDescription>
+              </Alert>
+            )}
+            {selectedFile && (
+              <div className="mb-4 overflow-hidden rounded-lg border border-muted bg-background shadow-sm">
+                <div className="flex items-center gap-3 border-b border-muted/60 bg-muted/20 px-4 py-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Send className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground">¿Listo para enviar tu hoja de vida?</p>
+                    <p className="text-xs text-muted-foreground">Revisa el archivo seleccionado antes de confirmar.</p>
+                  </div>
+                </div>
+                <div className="px-4 py-3 space-y-3">
+                  <div className="flex items-start gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 p-3">
+                    <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Archivo:</span> {selectedFile.name}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" onClick={handleConfirmUpload} disabled={applying} className="flex-1 sm:flex-none">
+                      {applying ? "Enviando postulación..." : "Confirmar envío"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelUpload}
+                      disabled={applying}
+                      className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 sm:flex-none"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
             {infoMessage && (
               <Alert className="mb-4 border-blue-500/60 bg-blue-50 text-blue-800">
                 <AlertDescription>{infoMessage}</AlertDescription>
@@ -101,9 +235,9 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
 
               {/* Botones de acción */}
               <div className="flex gap-3">
-                <Button className="flex-1 gap-2" onClick={handleApply}>
+                <Button className="flex-1 gap-2" onClick={handleApplyClick} disabled={applying}>
                   <Send className="w-4 h-4" />
-                  Postularme a este trabajo
+                  {applying ? "Enviando postulación..." : "Postularme a este trabajo"}
                 </Button>
                 <Button variant="outline" size="icon" onClick={handleSave}>
                   <Bookmark className="w-4 h-4" />

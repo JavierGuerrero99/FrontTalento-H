@@ -34,7 +34,6 @@ export function ProfileSection() {
     documento: "",
     hoja_vida_url: "",
   });
-  const [cvFile, setCvFile] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [editingAdditional, setEditingAdditional] = useState(false);
   const [originalAdditional, setOriginalAdditional] = useState({
@@ -121,26 +120,12 @@ export function ProfileSection() {
       };
       const updatedBasic = await updateProfile(profile.id, basicPayload);
 
-      // 2) Actualizar datos adicionales (teléfono, ubicación, documento, hoja de vida)
-      const hasCv = !!cvFile;
-      let additionalPayload: any;
-
-      if (hasCv) {
-        const formData = new FormData();
-        if (profile.telefono.trim()) formData.append("telefono", profile.telefono.trim());
-        if (profile.ubicacion.trim()) formData.append("ubicacion", profile.ubicacion.trim());
-        if (profile.documento.trim()) formData.append("documento", profile.documento.trim());
-        formData.append("hoja_vida", cvFile);
-        additionalPayload = formData;
-      } else {
-        additionalPayload = {
-          telefono: profile.telefono.trim() || null,
-          ubicacion: profile.ubicacion.trim() || null,
-          documento: profile.documento.trim() || null,
-        };
-      }
-
-      const updatedAdditional = await updateAdditionalProfile(additionalPayload);
+      // 2) Actualizar datos adicionales (teléfono, ubicación, documento)
+      const updatedAdditional = await updateAdditionalProfile({
+        telefono: profile.telefono.trim() || null,
+        ubicacion: profile.ubicacion.trim() || null,
+        documento: profile.documento.trim() || null,
+      });
 
       setProfile((prev) => ({
         ...prev,
@@ -155,7 +140,6 @@ export function ProfileSection() {
             prev.hoja_vida_url,
         id: profile.id,
       }));
-      setCvFile(null);
       setError(null);
       setSuccess("Perfil actualizado correctamente");
     } catch (e) {
@@ -168,24 +152,11 @@ export function ProfileSection() {
   const handleSaveAdditional = async () => {
     setSavingAdditional(true);
     try {
-      const hasCv = !!cvFile;
-      let additionalPayload: any;
-      if (hasCv) {
-        const formData = new FormData();
-        if (profile.telefono.trim()) formData.append("telefono", profile.telefono.trim());
-        if (profile.ubicacion.trim()) formData.append("ubicacion", profile.ubicacion.trim());
-        if (profile.documento.trim()) formData.append("documento", profile.documento.trim());
-        formData.append("hoja_vida", cvFile);
-        additionalPayload = formData;
-      } else {
-        additionalPayload = {
-          telefono: profile.telefono.trim() || null,
-          ubicacion: profile.ubicacion.trim() || null,
-          documento: profile.documento.trim() || null,
-        };
-      }
-
-      const updatedAdditional = await updateAdditionalProfile(additionalPayload);
+      const updatedAdditional = await updateAdditionalProfile({
+        telefono: profile.telefono.trim() || null,
+        ubicacion: profile.ubicacion.trim() || null,
+        documento: profile.documento.trim() || null,
+      });
       setProfile((prev) => ({
         ...prev,
         telefono: updatedAdditional.telefono ?? prev.telefono,
@@ -208,7 +179,6 @@ export function ProfileSection() {
             updatedAdditional.cv_url ||
             profile.hoja_vida_url,
       }));
-      setCvFile(null);
       setSuccess("Datos adicionales actualizados correctamente");
       setError(null);
       setEditingAdditional(false);
@@ -228,7 +198,6 @@ export function ProfileSection() {
       hoja_vida_url: originalAdditional.hoja_vida_url,
       avatar_url: originalAdditional.foto_perfil || prev.avatar_url,
     }));
-    setCvFile(null);
     setEditingAdditional(false);
   };
 
@@ -506,40 +475,25 @@ export function ProfileSection() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="hoja_vida">Hoja de vida</Label>
-              <Input
-                id="hoja_vida"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  setCvFile(file);
-                  resumeBlobUrlRef.current = null;
-                }}
-                disabled={!editingAdditional}
-                className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
-              />
-              {currentCvUrl && (
-                <div className="mt-2 flex flex-col gap-2">
-                  <p className="text-xs text-muted-foreground">
-                    Archivo actual disponible
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={handleDownloadCv}
-                      disabled={cvLoading !== null}
-                    >
-                      {cvLoading === "download" ? "Descargando..." : "Descargar"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
+          {currentCvUrl && (
+            <div className="rounded-md border border-dashed border-muted-foreground/30 bg-muted/10 p-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Hoja de vida registrada disponible para descarga.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={handleDownloadCv}
+                  disabled={cvLoading !== null}
+                >
+                  {cvLoading === "download" ? "Descargando..." : "Descargar hoja de vida"}
+                </Button>
+              </div>
+            </div>
+          )}
           {!editingAdditional && (
             <p className="text-xs text-muted-foreground">
               Estos campos están bloqueados. Pulsa Editar para modificarlos.
@@ -565,7 +519,7 @@ export function ProfileSection() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Al guardar se actualizarán teléfono, ubicación, documento y hoja de vida.
+                Al guardar se actualizarán teléfono, ubicación y documento.
               </p>
             </div>
           )}

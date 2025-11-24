@@ -1,18 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Alert, AlertDescription } from "./ui/alert";
-import { ScrollArea } from "./ui/scroll-area";
-import { Badge } from "./ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { listUsers, assignUserRole } from "../services/api";
+import { assignEmployeeToCompany } from "../services/api";
 
 interface AssignEmployeesDialogProps {
   open: boolean;
@@ -20,126 +12,56 @@ interface AssignEmployeesDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface UserSummary {
-  id: number;
-  email?: string;
-  username?: string;
-  nombres?: string;
-  apellidos?: string;
-  first_name?: string;
-  last_name?: string;
-  role?: string;
-}
-
-const formatUserName = (user: UserSummary) => {
-  const name =
-    user.nombres ||
-    user.first_name ||
-    user.username ||
-    user.email ||
-    `Usuario ${user.id}`;
-  const lastName = user.apellidos || user.last_name;
-  return lastName ? `${name} ${lastName}` : name;
-};
-
 export function AssignEmployeesDialog({ open, companyId, onOpenChange }: AssignEmployeesDialogProps) {
-  const [users, setUsers] = useState<UserSummary[]>([]);
-  const [filter, setFilter] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [selectedRole, setSelectedRole] = useState("rrhh");
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [email, setEmail] = useState("");
   const [assigning, setAssigning] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const [assignError, setAssignError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open || !companyId) {
-      return;
-    }
-    let active = true;
-    setLoadingUsers(true);
-    setFetchError(null);
-    listUsers()
-      .then((data) => {
-        if (!active) return;
-        if (Array.isArray(data)) {
-          setUsers(data as UserSummary[]);
-        } else if (Array.isArray(data?.results)) {
-          setUsers(data.results as UserSummary[]);
-        } else {
-          setUsers([]);
-        }
-      })
-      .catch(() => {
-        if (!active) return;
-        setFetchError("No se pudieron cargar los usuarios disponibles");
-      })
-      .finally(() => {
-        if (active) setLoadingUsers(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [open, companyId]);
+  const helperId = "assign-employee-helper";
 
   useEffect(() => {
     if (!open) {
-      setFilter("");
-      setSelectedUserId(null);
-      setSelectedRole("rrhh");
+      setEmail("");
       setAssignError(null);
       setSuccessMessage(null);
     }
   }, [open]);
 
-  const trimmedFilter = filter.trim();
-  const hasSearchTerm = trimmedFilter.length >= 2;
+  const handleAssign = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
 
-  const filteredUsers = useMemo(() => {
-    if (!hasSearchTerm) return [];
-    const term = trimmedFilter.toLowerCase();
-    return users.filter((user) => {
-      const values = [
-        user.email,
-        user.username,
-        user.nombres,
-        user.apellidos,
-        user.first_name,
-        user.last_name,
-      ]
-        .filter(Boolean)
-        .map((val) => String(val).toLowerCase());
-      return values.some((val) => val.includes(term));
-    });
-  }, [hasSearchTerm, trimmedFilter, users]);
-
-  const handleAssign = async () => {
-    if (!companyId || !selectedUserId) {
-      setAssignError("Selecciona un usuario a asignar");
+    if (!companyId) {
+      setAssignError("Selecciona una empresa para asignar el empleado");
       return;
     }
+
+    if (!email.trim()) {
+      setAssignError("Ingresa el correo del empleado a asignar");
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      setAssignError("Ingresa un correo electrónico válido");
+      return;
+    }
+
     setAssignError(null);
     setSuccessMessage(null);
     setAssigning(true);
+
     try {
-      await assignUserRole(selectedUserId, {
-        role: selectedRole,
-        id_empresa: companyId,
-      });
-      setSuccessMessage("Usuario asignado correctamente a la empresa");
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.id === selectedUserId ? { ...user, role: selectedRole } : user,
-        ),
-      );
+      await assignEmployeeToCompany(companyId, normalizedEmail);
+      setSuccessMessage("Empleado asignado correctamente a la empresa");
     } catch (error: any) {
       const backendMessage = error?.response?.data;
       if (backendMessage?.detail) {
         setAssignError(String(backendMessage.detail));
-      } else if (backendMessage?.role) {
-        setAssignError(Array.isArray(backendMessage.role) ? backendMessage.role.join(" ") : String(backendMessage.role));
+      } else if (backendMessage?.error) {
+        setAssignError(String(backendMessage.error));
+      } else if (backendMessage?.message) {
+        setAssignError(String(backendMessage.message));
       } else {
         setAssignError("No se pudo asignar el usuario. Intenta nuevamente");
       }
@@ -150,9 +72,7 @@ export function AssignEmployeesDialog({ open, companyId, onOpenChange }: AssignE
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
-      setFilter("");
-      setSelectedUserId(null);
-      setSelectedRole("rrhh");
+      setEmail("");
       setAssignError(null);
       setSuccessMessage(null);
     }
@@ -161,128 +81,71 @@ export function AssignEmployeesDialog({ open, companyId, onOpenChange }: AssignE
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby={helperId}>
         <DialogHeader>
-          <DialogTitle>Asignar empleados a la empresa</DialogTitle>
-          <DialogDescription>
-            Selecciona un usuario y define el rol que tendrá dentro de la empresa.
+          <DialogTitle className="text-lg font-semibold tracking-tight">Asignar empleados a la empresa</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Ingresa el correo institucional del colaborador para vincularlo a la organización seleccionada.
           </DialogDescription>
         </DialogHeader>
 
         {!companyId ? (
-          <p className="text-sm text-muted-foreground">
-            Selecciona una empresa para iniciar la asignación.
-          </p>
+          <p className="text-sm text-muted-foreground">Selecciona una empresa para iniciar la asignación.</p>
         ) : (
-          <div className="space-y-4">
-            {fetchError && (
-              <Alert variant="destructive">
-                <AlertDescription>{fetchError}</AlertDescription>
-              </Alert>
-            )}
-
-            {successMessage && (
-              <Alert className="border-green-200 bg-green-50">
-                <AlertDescription className="text-green-700">
-                  {successMessage}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {assignError && (
-              <Alert variant="destructive">
-                <AlertDescription>{assignError}</AlertDescription>
-              </Alert>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="assign-search">
-                Buscar usuario
-              </label>
-              <Input
-                id="assign-search"
-                placeholder="Filtra por nombre o correo"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                disabled={loadingUsers}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Selecciona un usuario</p>
-              <div className="border rounded-md">
-                <ScrollArea className="h-48">
-                  <div className="p-2 space-y-2">
-                    {loadingUsers ? (
-                      <p className="text-sm text-muted-foreground text-center py-6">
-                        Cargando usuarios...
-                      </p>
-                    ) : !hasSearchTerm ? (
-                      <p className="text-sm text-muted-foreground text-center py-6">
-                        Escribe al menos 2 caracteres para buscar usuarios.
-                      </p>
-                    ) : filteredUsers.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-6">
-                        No se encontraron usuarios con ese criterio.
-                      </p>
-                    ) : (
-                      filteredUsers.map((user) => {
-                        const isSelected = user.id === selectedUserId;
-                        return (
-                          <Button
-                            key={user.id}
-                            variant={isSelected ? "default" : "outline"}
-                            size="sm"
-                            className="w-full justify-between"
-                            onClick={() => setSelectedUserId(user.id)}
-                          >
-                            <span className="flex flex-col items-start">
-                              <span className="font-medium leading-none">
-                                {formatUserName(user)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {user.email || user.username || `ID ${user.id}`}
-                              </span>
-                            </span>
-                            {user.role && (
-                              <Badge variant="secondary" className="ml-2 capitalize">
-                                {user.role}
-                              </Badge>
-                            )}
-                          </Button>
-                        );
-                      })
-                    )}
-                  </div>
-                </ScrollArea>
+          <form onSubmit={handleAssign} className="space-y-5" noValidate>
+            <section className="rounded-lg border border-border/60 bg-muted/20 p-4">
+              <h3 className="text-sm font-semibold text-foreground">Detalles del colaborador</h3>
+              <p id={helperId} className="mt-1 text-xs text-muted-foreground">
+                El usuario debe existir en la plataforma y contar con permisos de RRHH. Recibirás un mensaje inmediato si ocurre algún inconveniente.
+              </p>
+              <div className="mt-4 space-y-2">
+                <label className="text-sm font-medium text-foreground" htmlFor="assign-email">
+                  Correo electrónico
+                </label>
+                <Input
+                  id="assign-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="colaborador@empresa.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-describedby={helperId}
+                  aria-invalid={assignError ? "true" : "false"}
+                  disabled={assigning}
+                  className="transition focus-visible:ring-2 focus-visible:ring-primary/40"
+                />
               </div>
+            </section>
+
+            <div className="space-y-3" aria-live="polite" aria-atomic="true">
+              {successMessage && (
+                <Alert className="border-green-200 bg-emerald-50 text-emerald-800">
+                  <AlertDescription>{successMessage}</AlertDescription>
+                </Alert>
+              )}
+
+              {assignError && (
+                <Alert variant="destructive" role="alert">
+                  <AlertDescription>{assignError}</AlertDescription>
+                </Alert>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Rol a asignar</label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rrhh">RRHH</SelectItem>
-                  <SelectItem value="candidato">Candidato</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => handleClose(false)} disabled={assigning}>
+            <div className="flex flex-col-reverse items-center gap-2 pt-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleClose(false)}
+                disabled={assigning}
+                className="w-full sm:w-auto"
+              >
                 Cancelar
               </Button>
-              <Button
-                onClick={handleAssign}
-                disabled={assigning || !selectedUserId}
-              >
-                {assigning ? "Asignando..." : "Asignar usuario"}
+              <Button type="submit" className="w-full sm:w-auto" disabled={assigning || !email.trim()}>
+                {assigning ? "Asignando..." : "Asignar"}
               </Button>
             </div>
-          </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>

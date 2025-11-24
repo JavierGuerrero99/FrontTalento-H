@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "./components/Navbar";
 import { CompanyRegistrationForm } from "./components/CompanyRegistrationForm";
 import { RegisterForm } from "./components/RegisterForm";
@@ -12,9 +12,12 @@ import { CompaniesList } from "./components/CompaniesList";
 import { CreateVacancyForm } from "./components/CreateVacancyForm";
 import { VacancyDetail } from "./components/VacancyDetail";
 import { VacantesEmpresa } from "./components/VacantesEmpresa";
+import { CompanyEmployees } from "./components/CompanyEmployees";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "./components/ui/dialog";
 import { Button } from "./components/ui/button";
 import { ResetPasswordForm } from "./components/ResetPasswordForm";
+import { MyVacancies } from "./components/MyVacancies";
+import { getProfile } from "./services/api";
 export default function App() {
 
   // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
@@ -22,6 +25,11 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<string>(() => (localStorage.getItem("access_token") ? "trabajos" : "login"));
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileFetched, setProfileFetched] = useState(false);
 
   // Detectar si estamos en la URL de reset de contraseña enviada por correo
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
@@ -29,22 +37,95 @@ export default function App() {
   const resetUid = resetMatch?.[1] || null;
   const resetToken = resetMatch?.[2] || null;
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!isAuthenticated) {
+      setUserRole(null);
+      setUserId(null);
+      setUserEmail(null);
+      setProfileFetched(false);
+      setProfileLoading(false);
+      return;
+    }
+
+    setProfileLoading(true);
+    setProfileFetched(false);
+
+    getProfile()
+      .then((profile) => {
+        if (cancelled) return;
+        const rawRole =
+          profile?.role ||
+          profile?.rol ||
+          profile?.user_role ||
+          (Array.isArray(profile?.groups) && profile.groups.length > 0 ? profile.groups[0] : null);
+        const normalizedRole = rawRole ? String(rawRole).toLowerCase() : null;
+        setUserRole(normalizedRole);
+        const derivedId =
+          typeof profile?.id === "number"
+            ? profile.id
+            : typeof profile?.user?.id === "number"
+            ? profile.user.id
+            : null;
+        const derivedEmail =
+          profile?.email ||
+          profile?.correo ||
+          profile?.user?.email ||
+          profile?.user?.correo ||
+          null;
+        setUserId(derivedId);
+        setUserEmail(derivedEmail ? String(derivedEmail) : null);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error("Error al obtener el perfil del usuario", error);
+        setUserRole(null);
+        setUserId(null);
+        setUserEmail(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setProfileLoading(false);
+        setProfileFetched(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  const normalizedRole = useMemo(() => userRole?.toLowerCase() ?? null, [userRole]);
+  const isRRHH = normalizedRole === "rrhh";
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (isRRHH && (activeSection === "empresas" || activeSection === "mis-empresas")) {
+      setActiveSection("mis-vacantes");
+    }
+  }, [isAuthenticated, isRRHH, activeSection]);
+
+  const hideNavbarSections = ["login", "recover", "registro"];
+  const shouldShowNavbar = !hideNavbarSections.includes(activeSection);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-  <Navbar
-        activeSection={activeSection}
-        onNavigate={setActiveSection}
-        isAuthenticated={isAuthenticated}
-        onLogout={() => {
-          setIsAuthenticated(false);
-          setActiveSection("login");
-          try {
-            localStorage.removeItem("isAuthenticated");
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-          } catch {}
-        }}
-      />
+      {shouldShowNavbar && (
+        <Navbar
+          activeSection={activeSection}
+          onNavigate={setActiveSection}
+          isAuthenticated={isAuthenticated}
+          onLogout={() => {
+            setIsAuthenticated(false);
+            setActiveSection("login");
+            try {
+              localStorage.removeItem("isAuthenticated");
+              localStorage.removeItem("access_token");
+              localStorage.removeItem("refresh_token");
+            } catch {}
+          }}
+          userRole={userRole}
+        />
+      )}
       
       <main className="py-8 px-4">
         <div className="flex flex-col items-center">
@@ -75,7 +156,7 @@ export default function App() {
             </div>
           )}
 
-          {activeSection === "mis-empresas" && (
+          {activeSection === "mis-empresas" && !isRRHH && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Mis Empresas</h1>
@@ -86,8 +167,6 @@ export default function App() {
               <div className="w-full max-w-6xl">
                 <CompanyList
                   onSelectCompany={(id) => setActiveSection(`empresa-${id}`)}
-                  onCreateVacancy={(id) => setActiveSection(`empresa-${id}-crear-vacante`)}
-                  onListVacancies={(id) => setActiveSection(`empresa-${id}-vacantes`)}
                 />
               </div>
             </div>
@@ -117,17 +196,38 @@ export default function App() {
                 </div>
               );
             }
+            if (activeSection.endsWith("empleados")) {
+              return (
+                <div className="w-full flex flex-col items-center gap-6">
+                  <div className="text-center space-y-2">
+                    <h1 className="text-primary">Empleados de la Empresa</h1>
+                  </div>
+                  <div className="w-full max-w-5xl">
+                    <CompanyEmployees
+                      companyId={id}
+                      onBack={() => setActiveSection(`empresa-${id}`)}
+                    />
+                  </div>
+                </div>
+              );
+            }
             return (
               <div className="w-full flex flex-col items-center gap-6">
                 <div className="text-center space-y-2">
                   <h1 className="text-primary">Detalle de Empresa</h1>
                 </div>
-                <CompanyCard companyId={id} />
+                <CompanyCard
+                  companyId={id}
+                  isRRHH={isRRHH}
+                  onCreateVacancy={(companyId) => setActiveSection(`empresa-${companyId}-crear-vacante`)}
+                  onListVacancies={(companyId) => setActiveSection(`empresa-${companyId}-vacantes`)}
+                  onListEmployees={(companyId) => setActiveSection(`empresa-${companyId}-empleados`)}
+                />
               </div>
             );
           })()}
 
-          {activeSection === "empresas" && (
+          {activeSection === "empresas" && !isRRHH && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Empresas</h1>
@@ -170,6 +270,32 @@ export default function App() {
             </div>
           )}
 
+          {activeSection === "mis-vacantes" && isRRHH && (
+            <div className="w-full flex flex-col items-center gap-6">
+              <div className="text-center space-y-2">
+                <h1 className="text-primary">Mis Vacantes</h1>
+                <p className="text-muted-foreground">
+                  Gestiona las vacantes en las que has sido asignado como responsable.
+                </p>
+              </div>
+              <div className="w-full max-w-6xl">
+                {profileLoading && (
+                  <div className="w-full flex justify-center py-16 text-muted-foreground">
+                    Cargando tu información...
+                  </div>
+                )}
+                {!profileLoading && profileFetched && (
+                  <MyVacancies
+                    userId={userId}
+                    userEmail={userEmail}
+                    onViewVacancy={(id) => setActiveSection(`vacante-${id}`)}
+                    onBack={() => setActiveSection("trabajos")}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
           {activeSection.startsWith("vacante-") && (() => {
             const parts = activeSection.split("-");
             const id = Number(parts[1]);
@@ -196,7 +322,7 @@ export default function App() {
           )}
 
           {activeSection === "login" && (
-            <div className="w-full flex flex-col items-center gap-6">
+            <div className="w-full flex flex-col items-center justify-center gap-6 min-h-[70vh]">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Bienvenido a Talento-Hub</h1>
                 <p className="text-muted-foreground">Inicia sesión para continuar</p>
@@ -214,7 +340,7 @@ export default function App() {
           )}
 
           {activeSection === "recover" && (
-            <div className="w-full flex flex-col items-center gap-6">
+            <div className="w-full flex flex-col items-center justify-center gap-6 min-h-[70vh]">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Recuperar Contraseña</h1>
                 <p className="text-muted-foreground">Ingresa tu correo para recuperar tu contraseña</p>
@@ -224,7 +350,7 @@ export default function App() {
           )}
 
           {activeSection === "registro" && (
-            <div className="w-full flex flex-col items-center gap-6">
+            <div className="w-full flex flex-col items-center justify-center gap-6 min-h-[70vh]">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Registro</h1>
                 <p className="text-muted-foreground">

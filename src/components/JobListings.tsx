@@ -28,7 +28,21 @@ export function JobListings() {
       .then((data) => {
         if (!mounted) return;
         const onlyPublished = (data || []).filter((v: any) => (v?.estado || "").toLowerCase() === "publicado");
-        const mapped: Job[] = onlyPublished.map((v: any, index: number) => ({
+        const mapped: Job[] = onlyPublished.map((v: any, index: number) => {
+          const rawModality =
+            v.modalidad_trabajo ??
+            v.modalidadTrabajo ??
+            v.modalidad ??
+            v.modalidadLaboral ??
+            v.modalidad_laboral ??
+            "";
+          const normalizedModality = typeof rawModality === "string" ? rawModality.trim().toLowerCase() : "";
+          const isRemote =
+            Boolean(v.remoto) ||
+            Boolean(v.es_remoto) ||
+            normalizedModality.includes("remoto");
+
+          return {
           id: v.id ?? index + 1,
           title: v.titulo ?? "Vacante sin título",
           company: v.empresa_nombre ?? v.empresa?.nombre ?? "Empresa no disponible",
@@ -40,10 +54,11 @@ export function JobListings() {
           description: v.descripcion ?? "Sin descripción",
           requirements: (v.requisitos ? String(v.requisitos).split("\n") : ["Sin requisitos específicos"]),
           benefits: v.beneficios ? String(v.beneficios).split("\n") : [],
-          isRemote: Boolean(v.remoto),
+          isRemote,
           postedDate: v.fecha_expiracion ?? v.fecha_publicacion ?? new Date().toISOString(),
           applicants: v.postulaciones_count ?? 0,
-        }));
+          };
+        });
         setJobs(mapped);
         setError(null);
       })

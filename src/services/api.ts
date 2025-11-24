@@ -19,6 +19,17 @@ export const publishVacancy = async (id: number) => {
   return api.patch(url);
 };
 
+// Asignar un responsable de RRHH a una vacante
+export const assignVacancyHr = async (vacancyId: number, email: string) => {
+  const host = BASE_URL.replace(/\/api\/?$/i, "");
+  const url = `${host}/vacantes/${vacancyId}/asignar_rrhh/`;
+  const payload = {
+    email,
+  };
+  const response = await api.post(url, payload);
+  return response.data;
+};
+
 // Postularse a una vacante adjuntando hoja de vida
 export const applyToVacancy = async (vacancyId: number, file: File) => {
   const host = BASE_URL.replace(/\/api\/?$/i, "");
@@ -40,6 +51,13 @@ export const listVacancies = async (empresa_id?: number) => {
   if (empresa_id) {
     url += `?empresa_id=${empresa_id}`;
   }
+  const resp = await api.get(url);
+  return resp.data;
+};
+
+export const listAssignedVacancies = async () => {
+  const host = BASE_URL.replace(/\/api\/?$/i, "");
+  const url = `${host}/vacantes/mis_asignadas/`;
   const resp = await api.get(url);
   return resp.data;
 };
@@ -161,6 +179,31 @@ export const assignUserRole = async (
   } catch (error) {
     const err = error as any;
     console.error(`Error al asignar rol al usuario ${userId}:`, err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
+export const assignEmployeeToCompany = async (empresaId: number, email: string) => {
+  try {
+    const response = await api.post("/asignar-empleado/", {
+      empresa_id: empresaId,
+      email,
+    });
+    return response.data;
+  } catch (error) {
+    const err = error as any;
+    console.error("Error al asignar empleado a la empresa:", err.response?.status, err.response?.data || err);
+    throw error;
+  }
+};
+
+export const getCompanyEmployees = async (empresaId: number) => {
+  try {
+    const response = await api.get(`/empresa/${empresaId}/trabajadores/`);
+    return response.data;
+  } catch (error) {
+    const err = error as any;
+    console.error(`Error al listar empleados de la empresa ${empresaId}:`, err.response?.status, err.response?.data || err);
     throw error;
   }
 };

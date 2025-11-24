@@ -8,12 +8,23 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { AssignEmployeesDialog } from "./AssignEmployeesDialog";
 
 interface CompanyCardProps {
   companyId: number;
+  isRRHH?: boolean;
+  onCreateVacancy?: (companyId: number) => void;
+  onListVacancies?: (companyId: number) => void;
+  onListEmployees?: (companyId: number) => void;
 }
 
-export function CompanyCard({ companyId }: CompanyCardProps) {
+export function CompanyCard({
+  companyId,
+  isRRHH = false,
+  onCreateVacancy,
+  onListVacancies,
+  onListEmployees,
+}: CompanyCardProps) {
   const [company, setCompany] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +37,7 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -170,17 +182,63 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
       </CardHeader>
       <CardContent>
         {!editMode ? (
-          <div className="prose">
+          <div className="space-y-6">
             {successMessage && (
-              <Alert className="mb-4 border-green-200 bg-green-50">
+              <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
               </Alert>
             )}
-            <p><strong>Nombre:</strong> {company.nombre || company.name}</p>
-            <p><strong>NIT:</strong> {company.nit}</p>
-            <p><strong>Dirección:</strong> {company.direccion}</p>
-            {company.descripcion && <p><strong>Descripción:</strong> {company.descripcion}</p>}
+            <div className="prose">
+              <p><strong>Nombre:</strong> {company.nombre || company.name}</p>
+              <p><strong>NIT:</strong> {company.nit}</p>
+              <p><strong>Dirección:</strong> {company.direccion}</p>
+              {company.descripcion && <p><strong>Descripción:</strong> {company.descripcion}</p>}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {!isRRHH && (
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => onCreateVacancy?.(company.id)}
+                >
+                  Crear vacante
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() =>
+                  onListVacancies
+                    ? onListVacancies(company.id)
+                    : (window.location.hash = `empresa-${company.id}-vacantes`)
+                }
+              >
+                Listar vacantes
+              </Button>
+              {!isRRHH && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    onListEmployees
+                      ? onListEmployees(company.id)
+                      : (window.location.hash = `empresa-${company.id}-empleados`)
+                  }
+                >
+                  Empleados
+                </Button>
+              )}
+              {!isRRHH && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setAssignDialogOpen(true)}
+                >
+                  Agregar empleados
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-4 w-full max-w-xl">
@@ -223,6 +281,13 @@ export function CompanyCard({ companyId }: CompanyCardProps) {
           </div>
         )}
       </CardContent>
+      {!isRRHH && (
+        <AssignEmployeesDialog
+          open={assignDialogOpen}
+          companyId={companyId}
+          onOpenChange={(open) => setAssignDialogOpen(open)}
+        />
+      )}
     </Card>
   );
 }

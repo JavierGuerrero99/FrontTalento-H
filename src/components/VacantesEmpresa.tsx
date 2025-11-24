@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
-import { AlertCircle, Edit, Trash2, Send, Calendar, Briefcase } from "lucide-react";
+import { AlertCircle, Edit, Trash2, Send, Calendar, Briefcase, UserCog } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
@@ -16,8 +16,8 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
-import api, { listVacancies } from "../services/api";
-import { editVacancy } from "../services/api";
+import { listVacancies, editVacancy } from "../services/api";
+import { AssignVacancyHrDialog } from "./AssignVacancyHrDialog";
 
 interface VacantesEmpresaProps {
   empresaId: number;
@@ -79,6 +79,8 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
   const [editingVacante, setEditingVacante] = useState<any | null>(null);
   const [publishConfirmId, setPublishConfirmId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [assignHrVacancy, setAssignHrVacancy] = useState<any | null>(null);
+  const [isAssignHrOpen, setIsAssignHrOpen] = useState(false);
   const [editValues, setEditValues] = useState({
     titulo: "",
     descripcion: "",
@@ -206,6 +208,16 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
     }
   };
 
+  const handleOpenAssignHr = (vacante: any) => {
+    setAssignHrVacancy(vacante);
+    setIsAssignHrOpen(true);
+  };
+
+  const handleCloseAssignHr = () => {
+    setIsAssignHrOpen(false);
+    setAssignHrVacancy(null);
+  };
+
   const refreshVacantes = async () => {
     setLoading(true);
     try {
@@ -237,7 +249,8 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
   const draftCount = totalCount - publishedCount;
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-background to-muted/10 py-8">
+    <>
+      <div className="w-full min-h-screen bg-gradient-to-br from-background to-muted/10 py-8">
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="mb-10">
@@ -384,6 +397,15 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                         )}
                       </div>
                       <div className="flex flex-col gap-2 sm:flex-row sm:gap-2 sm:justify-end w-full sm:w-auto">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => handleOpenAssignHr(vacante)}
+                        >
+                          <UserCog className="w-4 h-4" />
+                          Asignar RRHH
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -599,7 +621,18 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+      </div>
+      <AssignVacancyHrDialog
+        open={isAssignHrOpen}
+        vacancy={assignHrVacancy}
+        onClose={handleCloseAssignHr}
+        onAssigned={async (message) => {
+          setError(null);
+          await refreshVacantes();
+          setSuccess(message);
+        }}
+      />
+    </>
   );
 }
 

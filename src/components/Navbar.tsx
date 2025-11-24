@@ -4,6 +4,7 @@ import { Building2, User, Menu, X, Briefcase, UserPlus, Layers } from "lucide-re
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { makeAbsoluteUrl } from "../services/api";
+import { Badge } from "./ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,9 +18,16 @@ interface NavbarProps {
   onNavigate?: (section: string) => void;
   isAuthenticated?: boolean;
   onLogout?: () => void;
+  userRole?: string | null;
 }
 
-export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated = false, onLogout }: NavbarProps) {
+export function Navbar({
+  activeSection = "trabajos",
+  onNavigate,
+  isAuthenticated = false,
+  onLogout,
+  userRole = null,
+}: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [companiesWithLogo, setCompaniesWithLogo] = useState<any[]>([]);
@@ -134,6 +142,21 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
     setMobileMenuOpen(false);
   };
 
+  const normalizedRole = userRole?.toLowerCase() ?? null;
+  const isRRHH = normalizedRole === "rrhh";
+  const roleLabel = normalizedRole
+    ? normalizedRole === "candidato"
+      ? null
+      : normalizedRole === "admin"
+      ? "Empresario"
+      : normalizedRole === "rrhh"
+      ? "Recursos Humanos"
+      : normalizedRole
+          .split(/[\s_-]+/)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ")
+    : null;
+
   return (
     <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,9 +172,14 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
           </div>
 
           {/* Navegación Desktop */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
+                {roleLabel && (
+                  <Badge variant="secondary" className="uppercase tracking-wide text-[11px]">
+                    {roleLabel}
+                  </Badge>
+                )}
                 <Button
                   variant={activeSection === "trabajos" ? "default" : "ghost"}
                   onClick={() => handleNavigation("trabajos")}
@@ -161,24 +189,40 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                   Trabajos
                 </Button>
 
-                <Button
-                  variant={activeSection === "empresas" ? "default" : "ghost"}
-                  onClick={() => handleNavigation("empresas")}
-                  className="gap-2"
-                >
-                  <Building2 className="w-4 h-4" />
-                  Empresas
-                </Button>
+                {!isRRHH && (
+                  <>
+                    <Button
+                      variant={activeSection === "empresas" ? "default" : "ghost"}
+                      onClick={() => handleNavigation("empresas")}
+                      className="gap-2"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      Empresas
+                    </Button>
 
-                {/* 🔥 NUEVA SECCIÓN: MIS EMPRESAS */}
+                    <Button
+                      variant={activeSection === "mis-empresas" ? "default" : "ghost"}
+                      onClick={() => handleNavigation("mis-empresas")}
+                      className="gap-2"
+                    >
+                      <Layers className="w-4 h-4" />
+                      Mis Empresas
+                    </Button>
+                  </>
+                )}
+
+                {isRRHH && (
+                  <Button
+                    variant={activeSection === "mis-vacantes" ? "default" : "ghost"}
+                    onClick={() => handleNavigation("mis-vacantes")}
+                    className="gap-2"
+                  >
+                    <Layers className="w-4 h-4" />
+                    Mis vacantes
+                  </Button>
+                )}
+
                 <Button
-                  variant={activeSection === "mis-empresas" ? "default" : "ghost"}
-                  onClick={() => handleNavigation("mis-empresas")}
-                  className="gap-2"
-                >
-                  <Layers className="w-4 h-4" />
-                  Mis Empresas
-                </Button>                <Button
                   variant={activeSection === "perfil" ? "default" : "ghost"}
                   onClick={() => handleNavigation("perfil")}
                   className="gap-2"
@@ -230,6 +274,11 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
               <DropdownMenuContent align="end" className="w-48">
                 {isAuthenticated ? (
                   <>
+                    {roleLabel && (
+                      <DropdownMenuItem disabled className="uppercase text-[11px] tracking-wide opacity-70">
+                        {roleLabel}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onClick={() => handleNavigation("trabajos")}
                       className="gap-2 cursor-pointer"
@@ -238,24 +287,37 @@ export function Navbar({ activeSection = "trabajos", onNavigate, isAuthenticated
                       Trabajos
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      onClick={() => handleNavigation("empresas")}
-                      className="gap-2 cursor-pointer"
-                    >
-                      <Building2 className="w-4 h-4" />
-                      Empresas
-                    </DropdownMenuItem>
+                    {!isRRHH && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => handleNavigation("empresas")}
+                          className="gap-2 cursor-pointer"
+                        >
+                          <Building2 className="w-4 h-4" />
+                          Empresas
+                        </DropdownMenuItem>
 
-                    {/* 🔥 NUEVA SECCIÓN MOBILE */}
-                    <DropdownMenuItem
-                      onClick={() => handleNavigation("mis-empresas")}
-                      className="gap-2 cursor-pointer"
-                    >
-                      <Layers className="w-4 h-4" />
-                      Mis Empresas
-                    </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleNavigation("mis-empresas")}
+                          className="gap-2 cursor-pointer"
+                        >
+                          <Layers className="w-4 h-4" />
+                          Mis Empresas
+                        </DropdownMenuItem>
+                      </>
+                    )}
 
-                    {((companiesWithLogo.length > 0) ? companiesWithLogo : companies).length > 0 && (
+                    {isRRHH && (
+                      <DropdownMenuItem
+                        onClick={() => handleNavigation("mis-vacantes")}
+                        className="gap-2 cursor-pointer"
+                      >
+                        <Layers className="w-4 h-4" />
+                        Mis vacantes
+                      </DropdownMenuItem>
+                    )}
+
+                    {!isRRHH && ((companiesWithLogo.length > 0) ? companiesWithLogo : companies).length > 0 && (
                       <div className="px-2 py-1">
                         {((companiesWithLogo.length > 0) ? companiesWithLogo : companies).map((company: any) => (
                           <DropdownMenuItem

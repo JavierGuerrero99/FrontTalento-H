@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Alert, AlertDescription } from "./ui/alert";
 import { assignEmployeeToCompany } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface AssignEmployeesDialogProps {
   open: boolean;
@@ -52,19 +53,22 @@ export function AssignEmployeesDialog({ open, companyId, onOpenChange }: AssignE
     setAssigning(true);
 
     try {
-      await assignEmployeeToCompany(companyId, normalizedEmail);
-      setSuccessMessage("Empleado asignado correctamente a la empresa");
+      const response = await assignEmployeeToCompany(companyId, normalizedEmail);
+      console.log("Empleado asignado con éxito: ", response);
+      setAssignError(null);
+      setSuccessMessage("Empleado asignado correctamente");
+      toast.success("Empleado asignado correctamente");
     } catch (error: any) {
       const backendMessage = error?.response?.data;
-      if (backendMessage?.detail) {
-        setAssignError(String(backendMessage.detail));
-      } else if (backendMessage?.error) {
-        setAssignError(String(backendMessage.error));
-      } else if (backendMessage?.message) {
-        setAssignError(String(backendMessage.message));
-      } else {
-        setAssignError("No se pudo asignar el usuario. Intenta nuevamente");
-      }
+      const message = backendMessage?.detail
+        ? String(backendMessage.detail)
+        : backendMessage?.error
+        ? String(backendMessage.error)
+        : backendMessage?.message
+        ? String(backendMessage.message)
+        : "No se pudo asignar el usuario. Intenta nuevamente";
+      setAssignError(message);
+      toast.error(message);
     } finally {
       setAssigning(false);
     }

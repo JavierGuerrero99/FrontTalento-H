@@ -13,6 +13,7 @@ import { CreateVacancyForm } from "./components/CreateVacancyForm";
 import { VacancyDetail } from "./components/VacancyDetail";
 import { VacantesEmpresa } from "./components/VacantesEmpresa";
 import { CompanyEmployees } from "./components/CompanyEmployees";
+import { Toaster } from "react-hot-toast";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "./components/ui/dialog";
 import { Button } from "./components/ui/button";
 import { ResetPasswordForm } from "./components/ResetPasswordForm";
@@ -109,6 +110,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "border border-border/60 bg-background/95 backdrop-blur text-foreground shadow-lg",
+          duration: 4000,
+          style: {
+            fontFamily: "inherit",
+          },
+        }}
+      />
       {shouldShowNavbar && (
         <Navbar
           activeSection={activeSection}
@@ -182,7 +193,11 @@ export default function App() {
                     <h1 className="text-primary">Crear Vacante</h1>
                     <p className="text-muted-foreground">Completa los datos de la vacante para la empresa seleccionada</p>
                   </div>
-                  <CreateVacancyForm companyId={id} onCreated={() => setActiveSection("trabajos")} onNavigate={(path) => setActiveSection(path)} />
+                  <CreateVacancyForm
+                    companyId={id}
+                    onCreated={() => setActiveSection(`empresa-${id}-vacantes`)}
+                    onNavigate={(path) => setActiveSection(path)}
+                  />
                 </div>
               );
             }

@@ -11,6 +11,7 @@ import { Upload, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import axios from "axios";
 import { getAuthHeaders } from "../services/auth";
+import { toast } from "react-hot-toast";
 
 // Schema de validación
 const companySchema = z.object({
@@ -93,9 +94,12 @@ export function CompanyRegistrationForm() {
       setLogoPreview(null);
       setLogoFile(null);
       setSuccess("Empresa registrada correctamente");
+      toast.success("Empresa registrada correctamente");
     } catch (err) {
       console.error(err);
-      setError("Error al registrar la empresa. Intenta de nuevo.");
+      const message = "Error al registrar la empresa. Intenta de nuevo.";
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -233,6 +237,7 @@ export function CompanyRegistrationForm() {
                 setLogoPreview(null);
                 setLogoFile(null);
                 setError(null);
+                setSuccess(null);
               }}
             >
               Limpiar

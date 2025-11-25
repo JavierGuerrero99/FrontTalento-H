@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Avatar } from "./ui/avatar";
 import { Skeleton } from "./ui/skeleton";
 import { listCompanies } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface Company {
   id: number;
@@ -34,7 +35,11 @@ export function CompaniesList({ searchTerm }: CompaniesListProps) {
         }
       } catch (err) {
         console.error(err);
-        if (isMounted) setError("Error al cargar las empresas.");
+        if (isMounted) {
+          const message = "Error al cargar las empresas.";
+          setError(message);
+          toast.error(message);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }

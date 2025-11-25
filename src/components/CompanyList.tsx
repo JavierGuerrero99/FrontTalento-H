@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Button } from "./ui/button";
 import { getUserCompanies, makeAbsoluteUrl } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface CompanyListProps {
   onSelectCompany?: (companyId: number) => void;
@@ -25,7 +26,9 @@ export function CompanyList({ onSelectCompany }: CompanyListProps) {
       })
       .catch((e) => {
         if (!mounted) return;
-        setError("No se pudieron cargar las empresas");
+        const message = "No se pudieron cargar las empresas";
+        setError(message);
+        toast.error(message);
         console.error(e);
       })
       .finally(() => {
@@ -70,12 +73,12 @@ export function CompanyList({ onSelectCompany }: CompanyListProps) {
       {companies.map((company) => (
         <Card key={company.id} className="flex flex-col hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-col items-center text-center">
-            <Avatar className="w-16 h-16 mb-2 rounded-full bg-muted">
+            <Avatar className="w-24 h-24 mb-4 rounded-full overflow-hidden border border-border/60 bg-white/80 dark:bg-slate-900/80">
               {getLogoUrl(company) ? (
                 <ImageWithFallback
                   src={getLogoUrl(company)}
                   alt={getCompanyName(company)}
-                  className="w-16 h-16 object-contain rounded-full"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <AvatarFallback className="text-xl rounded-full">{getCompanyName(company)[0]}</AvatarFallback>

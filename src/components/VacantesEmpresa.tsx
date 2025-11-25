@@ -17,6 +17,7 @@ import {
 } from "./ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { listVacancies, editVacancy } from "../services/api";
+import { toast } from "react-hot-toast";
 import { AssignVacancyHrDialog } from "./AssignVacancyHrDialog";
 
 interface VacantesEmpresaProps {
@@ -169,7 +170,9 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
       await editVacancy(editingVacante.id, payload);
       setIsEditOpen(false);
       setEditingVacante(null);
-      setSuccess("Vacante actualizada correctamente");
+      const successMessage = "Vacante actualizada correctamente";
+      setSuccess(successMessage);
+      toast.success(successMessage);
       await refreshVacantes();
     } catch (e) {
       console.error("Error al guardar cambios de la vacante", e);
@@ -178,7 +181,9 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
         (e as any)?.response?.data?.detail ||
         (e as any)?.response?.data?.error ||
         "Error al guardar cambios de la vacante. Verifica que la fecha no sea pasada y que todos los campos sean válidos.";
-      setError(typeof message === "string" ? message : "Error al guardar cambios de la vacante.");
+      const errorMessage = typeof message === "string" ? message : "Error al guardar cambios de la vacante.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -186,11 +191,15 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
     if (deleteConfirmId == null) return;
     try {
       await import('../services/api').then(({ deleteVacancy }) => deleteVacancy(deleteConfirmId));
-      setSuccess('Vacante eliminada correctamente');
+      const successMessage = 'Vacante eliminada correctamente';
+      setSuccess(successMessage);
+      toast.success(successMessage);
       setDeleteConfirmId(null);
       await refreshVacantes();
     } catch (e) {
-      setError('Error al eliminar la vacante');
+      const errorMessage = 'Error al eliminar la vacante';
+      setError(errorMessage);
+      toast.error(errorMessage);
       setDeleteConfirmId(null);
     }
   };
@@ -199,11 +208,15 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
     if (publishConfirmId == null) return;
     try {
       await import('../services/api').then(({ publishVacancy }) => publishVacancy(publishConfirmId));
-      setSuccess('Vacante publicada correctamente');
+      const successMessage = 'Vacante publicada correctamente';
+      setSuccess(successMessage);
+      toast.success(successMessage);
       setPublishConfirmId(null);
       await refreshVacantes();
     } catch (e) {
-      setError('Error al publicar la vacante');
+      const errorMessage = 'Error al publicar la vacante';
+      setError(errorMessage);
+      toast.error(errorMessage);
       setPublishConfirmId(null);
     }
   };
@@ -225,7 +238,9 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
       setVacantes(data || []);
       setError(null);
     } catch (e) {
-      setError("No se pudieron cargar las vacantes");
+      const errorMessage = "No se pudieron cargar las vacantes";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

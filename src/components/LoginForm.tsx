@@ -8,6 +8,7 @@ import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 import { LogIn, Mail, Lock } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 // Schema de validación con Zod
 const loginSchema = z.object({
@@ -50,20 +51,21 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
 
       // Llamar al backend Django para obtener token
       await auth.login(data.email, data.password);
-      
-      
+
       // Si llegamos aquí, el login fue exitoso
       console.log("Login exitoso:", data.email);
+      toast.success("Sesión iniciada correctamente");
       
       if (onLoginSuccess) {
         onLoginSuccess(data.email);
       }
     } catch (error: any) {
       console.error("Error de login:", error);
-      setSubmitError(
-        error.response?.data?.detail || 
-        "Error al iniciar sesión. Verifica tus credenciales."
-      );
+      const message =
+        error.response?.data?.detail ||
+        "Error al iniciar sesión. Verifica tus credenciales.";
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

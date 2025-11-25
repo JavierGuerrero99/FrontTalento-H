@@ -13,6 +13,7 @@ import api, {
   updateAdditionalProfile,
   makeAbsoluteUrl,
 } from "../services/api";
+import { toast } from "react-hot-toast";
 
 export function ProfileSection() {
   const [loading, setLoading] = useState(true);
@@ -95,7 +96,9 @@ export function ProfileSection() {
         });
         setError(null);
       } catch (e) {
-        setError("No se pudo cargar el perfil");
+        const errorMessage = "No se pudo cargar el perfil";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -141,9 +144,13 @@ export function ProfileSection() {
         id: profile.id,
       }));
       setError(null);
-      setSuccess("Perfil actualizado correctamente");
+      const successMessage = "Perfil actualizado correctamente";
+      setSuccess(successMessage);
+      toast.success(successMessage);
     } catch (e) {
-      setError("Error al actualizar el perfil");
+      const errorMessage = "Error al actualizar el perfil";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -179,11 +186,15 @@ export function ProfileSection() {
             updatedAdditional.cv_url ||
             profile.hoja_vida_url,
       }));
-      setSuccess("Datos adicionales actualizados correctamente");
+      const successMessage = "Datos adicionales actualizados correctamente";
+      setSuccess(successMessage);
+      toast.success(successMessage);
       setError(null);
       setEditingAdditional(false);
     } catch (e) {
-      setError("Error al actualizar los datos adicionales");
+      const errorMessage = "Error al actualizar los datos adicionales";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSavingAdditional(false);
     }
@@ -225,10 +236,14 @@ export function ProfileSection() {
         ...prev,
         foto_perfil: newAvatar,
       }));
-      setSuccess("Foto de perfil actualizada correctamente");
+      const successMessage = "Foto de perfil actualizada correctamente";
+      setSuccess(successMessage);
+      toast.success(successMessage);
     } catch (uploadError) {
       console.error(uploadError);
-      setError("No se pudo actualizar la foto de perfil");
+      const errorMessage = "No se pudo actualizar la foto de perfil";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setAvatarUploading(false);
       event.target.value = "";
@@ -251,7 +266,9 @@ export function ProfileSection() {
       return blobUrl;
     } catch (cvError) {
       console.error(cvError);
-      setError("No se pudo cargar el documento PDF.");
+      const errorMessage = "No se pudo cargar el documento PDF.";
+      setError(errorMessage);
+      toast.error(errorMessage);
       return null;
     }
   };

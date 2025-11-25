@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Alert, AlertDescription } from "./ui/alert";
 import { UserPlus, Mail, Lock, User } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 // Schema de validación para candidatos
 const candidateSchema = z.object({
@@ -68,6 +69,7 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
         email: data.email,
         password: data.password
       });
+      toast.success("Registro completado. Revisa tu correo para confirmar tu cuenta.");
       if (onRegisterSuccess) {
         onRegisterSuccess(data.email, "candidate");
       }
@@ -82,12 +84,15 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
           : null;
 
       if (emailInUseMessage === "El correo ya está en uso") {
-        setSubmitError("El correo ya está en uso. Intenta iniciar sesión o usa otro correo.");
+        const message = "El correo ya está en uso. Intenta iniciar sesión o usa otro correo.";
+        setSubmitError(message);
+        toast.error(message);
       } else {
-        setSubmitError(
+        const fallbackMessage =
           backendData?.detail ||
-          "Error al registrar candidato. Por favor, verifica los datos e intenta de nuevo."
-        );
+          "Error al registrar candidato. Por favor, verifica los datos e intenta de nuevo.";
+        setSubmitError(fallbackMessage);
+        toast.error(fallbackMessage);
       }
     } finally {
       setIsSubmitting(false);

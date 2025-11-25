@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { AssignEmployeesDialog } from "./AssignEmployeesDialog";
+import { toast } from "react-hot-toast";
 
 interface CompanyCardProps {
   companyId: number;
@@ -128,11 +129,13 @@ export function CompanyCard({
       setLogoPreview(null);
       console.log('✅ Empresa actualizada', updated);
       setSuccessMessage("Empresa actualizada correctamente");
+      toast.success("Empresa actualizada correctamente");
       // Limpiar mensaje de éxito después de 3 segundos
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('❌ Error actualizando empresa', err);
       setValidationError('No se pudo actualizar la empresa. Intenta de nuevo.');
+      toast.error("No se pudo actualizar la empresa. Intenta de nuevo.");
     } finally {
       setIsSaving(false);
     }
@@ -214,7 +217,7 @@ export function CompanyCard({
                     : (window.location.hash = `empresa-${company.id}-vacantes`)
                 }
               >
-                Listar vacantes
+                Vacantes
               </Button>
               {!isRRHH && (
                 <Button

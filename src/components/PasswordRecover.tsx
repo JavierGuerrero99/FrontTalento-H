@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { Mail } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import api from "../services/api";
+import { toast } from "react-hot-toast";
 
 const recoverSchema = z.object({
   email: z.string().min(1, "El correo es obligatorio").email("Correo inválido"),
@@ -32,15 +33,18 @@ export function PasswordRecover({ onBack }: { onBack?: () => void }) {
 
     try {
       await api.post("/auth/password-reset/", { email: data.email });
-      setMessage("Si existe una cuenta con ese correo, recibirás instrucciones para restablecer la contraseña.");
+      const successMessage = "Si existe una cuenta con ese correo, recibirás instrucciones para restablecer la contraseña.";
+      setMessage(successMessage);
+      toast.success(successMessage);
     } catch (err: any) {
       console.error("Error en recuperación de contraseña", err?.response || err);
       const detail = err?.response?.data?.detail || err?.response?.data?.error;
-      setError(
+      const errorMessage =
         typeof detail === "string"
           ? detail
-          : "Error al solicitar recuperación. Intenta nuevamente."
-      );
+          : "Error al solicitar recuperación. Intenta nuevamente.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

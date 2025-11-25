@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Lock } from "lucide-react";
 import api from "../services/api";
+import { toast } from "react-hot-toast";
 
 const resetSchema = z
   .object({
@@ -52,15 +53,18 @@ export function ResetPasswordForm({ uid, token, onGoToLogin }: ResetPasswordForm
       await api.post(`/auth/password-reset-confirm/${uid}/${token}/`, {
         password: data.password,
       });
-      setSuccess("Contraseña restablecida correctamente. Ya puedes iniciar sesión.");
+      const successMessage = "Contraseña restablecida correctamente. Ya puedes iniciar sesión.";
+      setSuccess(successMessage);
+      toast.success(successMessage);
     } catch (err: any) {
       console.error("Error en confirmación de contraseña", err?.response || err);
       const detail = err?.response?.data?.detail || err?.response?.data?.error;
-      setError(
+      const errorMessage =
         typeof detail === "string"
           ? detail
-          : "No se pudo restablecer la contraseña. El enlace puede ser inválido o haber expirado."
-      );
+          : "No se pudo restablecer la contraseña. El enlace puede ser inválido o haber expirado.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

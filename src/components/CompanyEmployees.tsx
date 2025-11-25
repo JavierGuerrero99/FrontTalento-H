@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Skeleton } from "./ui/skeleton";
 import { getCompanyEmployees } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface CompanyEmployeesProps {
   companyId: number;
@@ -70,6 +71,7 @@ export function CompanyEmployees({ companyId, onBack }: CompanyEmployeesProps) {
           (err as any)?.response?.data?.error ||
           "No se pudieron cargar los empleados";
         setError(typeof message === "string" ? message : "No se pudieron cargar los empleados");
+        toast.error(typeof message === "string" ? message : "No se pudieron cargar los empleados");
         setCompanySummary(null);
       })
       .finally(() => {

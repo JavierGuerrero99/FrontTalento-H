@@ -11,6 +11,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { assignVacancyHr } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface AssignVacancyHrDialogProps {
   open: boolean;
@@ -57,8 +58,10 @@ export function AssignVacancyHrDialog({
     setAssigning(true);
     try {
       await assignVacancyHr(vacancy.id, trimmedEmail);
+      const successMessage = "Responsable de RRHH asignado correctamente";
+      toast.success(successMessage);
       if (onAssigned) {
-        await onAssigned("Responsable de RRHH asignado correctamente");
+        await onAssigned(successMessage);
       }
       onClose();
     } catch (error: any) {
@@ -71,6 +74,14 @@ export function AssignVacancyHrDialog({
         setAssignError(String(backendMessage.message));
       } else {
         setAssignError("No se pudo asignar el usuario. Intenta nuevamente");
+      }
+      const errorMessage =
+        backendMessage?.detail ||
+        backendMessage?.error ||
+        backendMessage?.message ||
+        "No se pudo asignar el usuario. Intenta nuevamente";
+      if (typeof errorMessage === "string") {
+        toast.error(errorMessage);
       }
     } finally {
       setAssigning(false);

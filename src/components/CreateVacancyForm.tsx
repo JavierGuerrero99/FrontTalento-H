@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { createVacancy } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface CreateVacancyFormProps {
   companyId: number;
@@ -83,15 +84,21 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
     setSuccess(null);
 
     if (!titulo.trim()) {
-      setError("El título es obligatorio");
+      const message = "El título es obligatorio";
+      setError(message);
+      toast.error(message);
       return;
     }
     if (!descripcion.trim()) {
-      setError("La descripción es obligatoria");
+      const message = "La descripción es obligatoria";
+      setError(message);
+      toast.error(message);
       return;
     }
     if (!requisitos.trim()) {
-      setError("Los requisitos son obligatorios");
+      const message = "Los requisitos son obligatorios";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -99,7 +106,9 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
       setIsSubmitting(true);
       
       if (!fechaExpiracion) {
-        setError("La fecha de expiración es obligatoria");
+        const message = "La fecha de expiración es obligatoria";
+        setError(message);
+        toast.error(message);
         setIsSubmitting(false);
         return;
       }
@@ -122,7 +131,9 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
       };
 
       const created = await createVacancy(payload);
-      setSuccess("Vacante creada correctamente");
+      const successMessage = "Vacante creada correctamente";
+      setSuccess(successMessage);
+      toast.success(successMessage);
       setCreatedVacancy(created);
       setTitulo("");
       setDescripcion("");
@@ -137,7 +148,9 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
       if (onCreated) onCreated(created);
     } catch (err) {
       console.error('Error creando vacante', err);
-      setError('No fue posible crear la vacante. Intenta de nuevo.');
+      const errorMessage = 'No fue posible crear la vacante. Intenta de nuevo.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -11,6 +11,8 @@ import { CompanyList } from "./components/CompanyList";
 import { CompaniesList } from "./components/CompaniesList";
 import { CreateVacancyForm } from "./components/CreateVacancyForm";
 import { VacancyDetail } from "./components/VacancyDetail";
+import { VacancyApplications } from "./components/VacancyApplications";
+import { VacancyApplicationDetail } from "./components/VacancyApplicationDetail";
 import { VacantesEmpresa } from "./components/VacantesEmpresa";
 import { CompanyEmployees } from "./components/CompanyEmployees";
 import { Toaster } from "react-hot-toast";
@@ -303,7 +305,7 @@ export default function App() {
                   <MyVacancies
                     userId={userId}
                     userEmail={userEmail}
-                    onViewVacancy={(id) => setActiveSection(`vacante-${id}`)}
+                    onViewVacancy={(id) => setActiveSection(`vacante-${id}-postulaciones`)}
                     onBack={() => setActiveSection("trabajos")}
                   />
                 )}
@@ -312,14 +314,62 @@ export default function App() {
           )}
 
           {activeSection.startsWith("vacante-") && (() => {
-            const parts = activeSection.split("-");
-            const id = Number(parts[1]);
+            const match = activeSection.match(/^vacante-(\d+)(?:-(.+))?$/);
+            if (!match) return null;
+            const id = Number(match[1]);
+            if (Number.isNaN(id)) return null;
+            const subSection = match[2] ?? null;
+
+            if (subSection === "postulaciones") {
+              return (
+                <div className="w-full flex flex-col items-center gap-6">
+                  <div className="text-center space-y-2">
+                    <h1 className="text-primary">Postulaciones de la Vacante</h1>
+                    <p className="text-muted-foreground">
+                      Revisa y gestiona las personas que se han postulado a esta oportunidad.
+                    </p>
+                  </div>
+                  <div className="w-full max-w-6xl">
+                    <VacancyApplications
+                      vacancyId={id}
+                      onBack={() => setActiveSection("mis-vacantes")}
+                      onViewApplication={(slug: string) => setActiveSection(`vacante-${id}-postulacion-${slug}`)}
+                    />
+                  </div>
+                </div>
+              );
+            }
+
+            if (subSection?.startsWith("postulacion-")) {
+              const applicationSlug = subSection.slice("postulacion-".length);
+              return (
+                <div className="w-full flex flex-col items-center gap-6">
+                  <div className="text-center space-y-2">
+                    <h1 className="text-primary">Detalle de Postulación</h1>
+                    <p className="text-muted-foreground">
+                      Revisa la hoja de vida completa y la información de la vacante.
+                    </p>
+                  </div>
+                  <div className="w-full max-w-7xl">
+                    <VacancyApplicationDetail
+                      vacancyId={id}
+                      applicationSlug={applicationSlug}
+                      onBack={() => setActiveSection(`vacante-${id}-postulaciones`)}
+                    />
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div className="w-full flex flex-col items-center gap-6">
                 <div className="text-center space-y-2">
                   <h1 className="text-primary">Detalle de Vacante</h1>
                 </div>
-                <VacancyDetail vacancyId={id} onBack={() => setActiveSection("trabajos")} />
+                <VacancyDetail
+                  vacancyId={id}
+                  onBack={() => setActiveSection(isRRHH ? "mis-vacantes" : "trabajos")}
+                />
               </div>
             );
           })()}

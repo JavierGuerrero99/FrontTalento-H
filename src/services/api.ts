@@ -69,6 +69,70 @@ export const getVacancy = async (id: number) => {
   const resp = await api.get(url);
   return resp.data;
 };
+
+export const getVacancyApplications = async (vacancyId: number) => {
+  const host = BASE_URL.replace(/\/api\/?$/i, "");
+  const url = `${host}/vacantes/${vacancyId}/postulaciones/`;
+  const resp = await api.get(url);
+  return resp.data;
+};
+
+export const commentOnApplication = async (applicationId: number | string, subject: string, message: string) => {
+  if (!subject.trim() || !message.trim()) {
+    throw new Error("El comentario requiere asunto y mensaje");
+  }
+
+  const host = BASE_URL.replace(/\/api\/?$/i, "");
+  const sanitizedId = String(applicationId).trim();
+  const url = `${host}/reclutador/postulaciones/${sanitizedId}/contactar/`;
+  const payload = {
+    asunto: subject,
+    mensaje: message,
+  };
+  const response = await api.post(url, payload);
+  return response.data;
+};
+
+export const updateApplicationStatus = async (applicationId: number | string, status: string) => {
+  const trimmedStatus = status.trim();
+  if (!trimmedStatus) {
+    throw new Error("Selecciona un estado válido para la postulación");
+  }
+
+  const host = BASE_URL.replace(/\/api\/?$/i, "");
+  const sanitizedId = String(applicationId).trim();
+  const url = `${host}/reclutador/postulaciones/${sanitizedId}/estado/`;
+  const payload = { estado: trimmedStatus };
+  const response = await api.patch(url, payload);
+  return response.data;
+};
+
+export const markCandidateAsFavorite = async (candidateId: number | string) => {
+  const sanitizedId = String(candidateId).trim();
+  if (!sanitizedId) {
+    throw new Error("No se pudo identificar al candidato para marcarlo como favorito");
+  }
+
+  const payload = { candidato_id: Number.isNaN(Number(sanitizedId)) ? sanitizedId : Number(sanitizedId) };
+  const response = await api.post("/favoritos/", payload);
+  return response.data;
+};
+
+export const removeFavorite = async (candidateId: number | string) => {
+  const sanitizedId = String(candidateId).trim();
+  if (!sanitizedId) {
+    throw new Error("No se pudo identificar al candidato para eliminar de favoritos");
+  }
+
+  const encodedId = Number.isNaN(Number(sanitizedId)) ? encodeURIComponent(sanitizedId) : Number(sanitizedId);
+  const response = await api.delete(`/favoritos/${encodedId}/`);
+  return response.data;
+};
+
+export const listFavorites = async () => {
+  const response = await api.get(`/favoritos/`);
+  return response.data;
+};
 import axios, { AxiosError } from "axios";
 
 // Base URL desde Vite env (VITE_API_BASE_URL). Si no existe, usa localhost por defecto.

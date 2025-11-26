@@ -177,17 +177,6 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
                 <Button
                   type="button"
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => {
-                    const navigate = onNavigate || ((path) => { window.location.hash = path; });
-                    navigate(`vacante-${createdVacancy.id}`);
-                  }}
-                >
-                  Ver vacante
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
                   variant="ghost"
                   className="text-green-700 hover:text-green-800 hover:bg-green-100"
                   onClick={() => (window.location.hash = "mis-empresas")}

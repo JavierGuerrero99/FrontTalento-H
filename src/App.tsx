@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navbar } from "./components/Navbar";
 import { CompanyRegistrationForm } from "./components/CompanyRegistrationForm";
 import { RegisterForm } from "./components/RegisterForm";
@@ -21,11 +21,25 @@ import { Button } from "./components/ui/button";
 import { ResetPasswordForm } from "./components/ResetPasswordForm";
 import { MyVacancies } from "./components/MyVacancies";
 import { getProfile } from "./services/api";
+import { BackButton } from "./components/BackButton";
 export default function App() {
 
   // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem("access_token"));
-  const [activeSection, setActiveSection] = useState<string>(() => (localStorage.getItem("access_token") ? "trabajos" : "login"));
+  const initialNavigationState = useMemo(() => {
+    if (typeof window === "undefined") {
+      return { isAuthenticated: false, section: "login" as const };
+    }
+    try {
+      const hasToken = !!localStorage.getItem("access_token");
+      return { isAuthenticated: hasToken, section: hasToken ? "trabajos" : "login" };
+    } catch {
+      return { isAuthenticated: false, section: "login" as const };
+    }
+  }, []);
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialNavigationState.isAuthenticated);
+  const [activeSection, setActiveSection] = useState<string>(initialNavigationState.section);
+  const [navigationStack, setNavigationStack] = useState<string[]>([initialNavigationState.section]);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -33,6 +47,73 @@ export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileFetched, setProfileFetched] = useState(false);
+
+  const handleNavigate = useCallback(
+    (section: string, options: { replace?: boolean; reset?: boolean } = {}) => {
+      setActiveSection(section);
+      setNavigationStack((prev) => {
+        if (options.reset) {
+          return [section];
+        }
+
+        if (prev.length === 0) {
+          return [section];
+        }
+
+        if (options.replace) {
+          const next = [...prev];
+          next[next.length - 1] = section;
+          return next;
+        }
+
+        const last = prev[prev.length - 1];
+        if (last === section) {
+          return prev;
+        }
+
+        return [...prev, section];
+      });
+    },
+    []
+  );
+
+  const goBack = useCallback(() => {
+    let didGoBack = false;
+    setNavigationStack((prev) => {
+      if (prev.length <= 1) {
+        return prev;
+      }
+
+      const next = prev.slice(0, -1);
+      const target = next[next.length - 1];
+      setActiveSection(target);
+      didGoBack = true;
+      return next;
+    });
+    return didGoBack;
+  }, []);
+
+  const canGoBack = navigationStack.length > 1;
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    handleNavigate("login", { reset: true });
+    try {
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    } catch {}
+  }, [handleNavigate]);
+
+  const goBackOrNavigate = useCallback(
+    (fallbackSection: string) => {
+      const didGoBack = goBack();
+      if (!didGoBack) {
+        handleNavigate(fallbackSection, { replace: true });
+      }
+    },
+    [goBack, handleNavigate]
+  );
 
   // Detectar si estamos en la URL de reset de contraseña enviada por correo
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
@@ -103,9 +184,9 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
     if (isRRHH && (activeSection === "empresas" || activeSection === "mis-empresas")) {
-      setActiveSection("mis-vacantes");
+      handleNavigate("mis-vacantes", { replace: true });
     }
-  }, [isAuthenticated, isRRHH, activeSection]);
+  }, [isAuthenticated, isRRHH, activeSection, handleNavigate]);
 
   const hideNavbarSections = ["login", "recover", "registro"];
   const shouldShowNavbar = !hideNavbarSections.includes(activeSection);
@@ -125,30 +206,25 @@ export default function App() {
       {shouldShowNavbar && (
         <Navbar
           activeSection={activeSection}
-          onNavigate={setActiveSection}
+          onNavigate={handleNavigate}
           isAuthenticated={isAuthenticated}
-          onLogout={() => {
-            setIsAuthenticated(false);
-            setActiveSection("login");
-            try {
-              localStorage.removeItem("isAuthenticated");
-              localStorage.removeItem("access_token");
-              localStorage.removeItem("refresh_token");
-            } catch {}
-          }}
+          onLogout={handleLogout}
           userRole={userRole}
         />
       )}
       
       <main className="py-8 px-4">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-full max-w-7xl flex justify-start">
+            <BackButton onClick={() => goBack()} disabled={!canGoBack} />
+          </div>
           {resetUid && resetToken ? (
             <div className="w-full flex flex-col items-center gap-6">
               <ResetPasswordForm
                 uid={resetUid}
                 token={resetToken}
                 onGoToLogin={() => {
-                  setActiveSection("login");
+                  handleNavigate("login", { reset: true, replace: true });
                   if (typeof window !== "undefined") {
                     window.history.pushState({}, "", "/");
                   }
@@ -179,7 +255,7 @@ export default function App() {
               </div>
               <div className="w-full max-w-6xl">
                 <CompanyList
-                  onSelectCompany={(id) => setActiveSection(`empresa-${id}`)}
+                  onSelectCompany={(id) => handleNavigate(`empresa-${id}`)}
                 />
               </div>
             </div>
@@ -197,8 +273,8 @@ export default function App() {
                   </div>
                   <CreateVacancyForm
                     companyId={id}
-                    onCreated={() => setActiveSection(`empresa-${id}-vacantes`)}
-                    onNavigate={(path) => setActiveSection(path)}
+                    onCreated={() => handleNavigate(`empresa-${id}-vacantes`)}
+                    onNavigate={handleNavigate}
                   />
                 </div>
               );
@@ -222,7 +298,7 @@ export default function App() {
                   <div className="w-full max-w-5xl">
                     <CompanyEmployees
                       companyId={id}
-                      onBack={() => setActiveSection(`empresa-${id}`)}
+                      onBack={() => goBackOrNavigate(`empresa-${id}`)}
                     />
                   </div>
                 </div>
@@ -236,9 +312,9 @@ export default function App() {
                 <CompanyCard
                   companyId={id}
                   isRRHH={isRRHH}
-                  onCreateVacancy={(companyId) => setActiveSection(`empresa-${companyId}-crear-vacante`)}
-                  onListVacancies={(companyId) => setActiveSection(`empresa-${companyId}-vacantes`)}
-                  onListEmployees={(companyId) => setActiveSection(`empresa-${companyId}-empleados`)}
+                  onCreateVacancy={(companyId) => handleNavigate(`empresa-${companyId}-crear-vacante`)}
+                  onListVacancies={(companyId) => handleNavigate(`empresa-${companyId}-vacantes`)}
+                  onListEmployees={(companyId) => handleNavigate(`empresa-${companyId}-empleados`)}
                 />
               </div>
             );
@@ -305,8 +381,8 @@ export default function App() {
                   <MyVacancies
                     userId={userId}
                     userEmail={userEmail}
-                    onViewVacancy={(id) => setActiveSection(`vacante-${id}-postulaciones`)}
-                    onBack={() => setActiveSection("trabajos")}
+                    onViewVacancy={(id) => handleNavigate(`vacante-${id}-postulaciones`)}
+                    onBack={() => goBackOrNavigate("trabajos")}
                   />
                 )}
               </div>
@@ -332,8 +408,8 @@ export default function App() {
                   <div className="w-full max-w-6xl">
                     <VacancyApplications
                       vacancyId={id}
-                      onBack={() => setActiveSection("mis-vacantes")}
-                      onViewApplication={(slug: string) => setActiveSection(`vacante-${id}-postulacion-${slug}`)}
+                      onBack={() => goBackOrNavigate("mis-vacantes")}
+                      onViewApplication={(slug: string) => handleNavigate(`vacante-${id}-postulacion-${slug}`)}
                     />
                   </div>
                 </div>
@@ -354,7 +430,7 @@ export default function App() {
                     <VacancyApplicationDetail
                       vacancyId={id}
                       applicationSlug={applicationSlug}
-                      onBack={() => setActiveSection(`vacante-${id}-postulaciones`)}
+                      onBack={() => goBackOrNavigate(`vacante-${id}-postulaciones`)}
                     />
                   </div>
                 </div>
@@ -368,7 +444,7 @@ export default function App() {
                 </div>
                 <VacancyDetail
                   vacancyId={id}
-                  onBack={() => setActiveSection(isRRHH ? "mis-vacantes" : "trabajos")}
+                  onBack={() => goBackOrNavigate(isRRHH ? "mis-vacantes" : "trabajos")}
                 />
               </div>
             );
@@ -393,12 +469,12 @@ export default function App() {
                 <p className="text-muted-foreground">Inicia sesión para continuar</p>
               </div>
               <LoginForm
-                onSwitchToRegister={() => setActiveSection("registro")}
-                onSwitchToRecover={() => setActiveSection("recover")}
+                onSwitchToRegister={() => handleNavigate("registro")}
+                onSwitchToRecover={() => handleNavigate("recover")}
                 onLoginSuccess={() => {
                   setIsAuthenticated(true);
                   try { localStorage.setItem("isAuthenticated", "true"); } catch {}
-                  setActiveSection("trabajos");
+                  handleNavigate("trabajos", { reset: true });
                 }}
               />
             </div>
@@ -410,7 +486,7 @@ export default function App() {
                 <h1 className="text-primary">Recuperar Contraseña</h1>
                 <p className="text-muted-foreground">Ingresa tu correo para recuperar tu contraseña</p>
               </div>
-              <PasswordRecover onBack={() => setActiveSection('login')} />
+              <PasswordRecover onBack={() => goBackOrNavigate("login")} />
             </div>
           )}
 
@@ -423,11 +499,11 @@ export default function App() {
                 </p>
               </div>
               <RegisterForm
-                onSwitchToLogin={() => setActiveSection("login")}
+                onSwitchToLogin={() => handleNavigate("login")}
                 onRegisterSuccess={() => {
                   setIsAuthenticated(true);
                   try { localStorage.setItem("isAuthenticated", "true"); } catch {}
-                  setActiveSection("trabajos");
+                  handleNavigate("trabajos", { reset: true });
                 }}
               />
             </div>

@@ -166,7 +166,7 @@ export function Navbar({
             <img
               src="/logo.png"
               alt="Talento-Hub logo"
-              className="w-10 h-10 rounded-full object-contain bg-white"
+              className="w-10 h-10 rounded-full object-contain bg-card"
             />
             <span className="text-primary font-semibold">Talento-Hub</span>
           </div>

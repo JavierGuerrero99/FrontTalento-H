@@ -36,12 +36,12 @@ export const candidateKeys = [
 ];
 
 export const statusStyles: StatusStyles = {
-  postulado: "bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-200",
-  "en revision": "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-200",
-  "en revisión": "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-200",
-  rechazado: "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-200",
-  entrevista: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200",
-  contratado: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200",
+  postulado: "bg-secondary text-secondary-foreground",
+  "en revision": "bg-accent text-accent-foreground",
+  "en revisión": "bg-accent text-accent-foreground",
+  rechazado: "bg-primary/20 text-primary",
+  entrevista: "bg-primary text-primary-foreground",
+  contratado: "bg-primary text-primary-foreground",
 };
 
 export const toArray = (value: any): any[] => {
@@ -265,7 +265,7 @@ export const resolveStatus = (application: any) => {
     return {
       value: null,
       label: "Sin estado",
-      className: "bg-amber-400/25 text-amber-700 dark:text-amber-200",
+      className: "bg-secondary text-secondary-foreground",
     };
   }
 
@@ -274,7 +274,7 @@ export const resolveStatus = (application: any) => {
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-  const className = statusStyles[normalized] || "bg-amber-400/25 text-amber-700 dark:text-amber-200";
+  const className = statusStyles[normalized] || "bg-secondary text-secondary-foreground";
   const displayLabel = statusValue.replaceAll("_", " ");
 
   return {

@@ -123,7 +123,7 @@ export function AssignEmployeesDialog({ open, companyId, onOpenChange }: AssignE
 
             <div className="space-y-3" aria-live="polite" aria-atomic="true">
               {successMessage && (
-                <Alert className="border-green-200 bg-emerald-50 text-emerald-800">
+                <Alert className="border border-border/60 bg-secondary/40 text-primary">
                   <AlertDescription>{successMessage}</AlertDescription>
                 </Alert>
               )}

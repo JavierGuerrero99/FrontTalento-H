@@ -140,8 +140,8 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             {applySuccess && (
-              <Alert className="mb-4 border-green-500/60 bg-green-50 text-green-800">
-                <AlertDescription>{applySuccess}</AlertDescription>
+              <Alert className="mb-4 border-primary/50 bg-primary/10 text-primary">
+                <AlertDescription className="text-primary">{applySuccess}</AlertDescription>
               </Alert>
             )}
             {applyError && (
@@ -185,8 +185,8 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
               </div>
             )}
             {infoMessage && (
-              <Alert className="mb-4 border-blue-500/60 bg-blue-50 text-blue-800">
-                <AlertDescription>{infoMessage}</AlertDescription>
+              <Alert className="mb-4 border-primary/50 bg-primary/10 text-primary">
+                <AlertDescription className="text-primary">{infoMessage}</AlertDescription>
               </Alert>
             )}
             <DialogHeader className="space-y-4">

@@ -330,7 +330,7 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
   );
 
   return (
-    <Card className="border border-border/40 bg-white/80 shadow-xl backdrop-blur dark:bg-slate-900/80">
+    <Card className="border border-border/40 shadow-xl backdrop-blur">
       <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <Badge variant="outline" className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -353,7 +353,7 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
             variant={filterFavoritesOnly ? "secondary" : "outline"}
             size="sm"
             onClick={() => setFilterFavoritesOnly((prev) => !prev)}
-            className={`gap-2 ${filterFavoritesOnly ? "text-amber-600 dark:text-amber-300" : ""}`}
+            className={`gap-2 ${filterFavoritesOnly ? "text-primary" : ""}`}
             aria-pressed={filterFavoritesOnly}
           >
             <Star
@@ -401,26 +401,26 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
         )}
 
         {loading && (
-          <div className="flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-white/70 py-12 text-sm text-muted-foreground shadow-inner backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/60">
+          <div className="flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-card py-12 text-sm text-muted-foreground shadow-inner backdrop-blur">
             <Loader2 className="h-5 w-5 animate-spin" />
             Cargando postulaciones...
           </div>
         )}
 
         {!loading && !error && totalApplications === 0 && (
-          <div className="rounded-xl border border-dashed border-border/60 bg-white/60 p-10 text-center text-sm text-muted-foreground backdrop-blur dark:bg-slate-900/60">
+          <div className="rounded-xl border border-dashed border-border/60 bg-card p-10 text-center text-sm text-muted-foreground backdrop-blur">
             No se encontraron postulaciones para esta vacante por ahora. Invita candidatos o comparte la oferta para recibir aplicaciones.
           </div>
         )}
 
         {showFavoritesEmptyState && (
-          <div className="rounded-xl border border-dashed border-border/60 bg-white/60 p-10 text-center text-sm text-muted-foreground backdrop-blur dark:bg-slate-900/60">
+          <div className="rounded-xl border border-dashed border-border/60 bg-card p-10 text-center text-sm text-muted-foreground backdrop-blur">
             No hay postulaciones marcadas como favoritas todavía.
           </div>
         )}
 
         {!loading && !error && displayedCount > 0 && (
-          <div className="rounded-xl border border-border/40 bg-white/90 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
+          <div className="rounded-xl border border-border/40 bg-card shadow-sm backdrop-blur">
             <Table className="mx-auto max-w-5xl [&_td]:text-center [&_th]:text-center">
               <TableHeader>
                 <TableRow>
@@ -487,7 +487,7 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="text-amber-600 hover:text-amber-700 dark:text-amber-300"
+                              className="text-primary hover:text-primary/80"
                               aria-label="Quitar de favoritos"
                               onClick={() => handleRemoveFavorite(slug, candidateId)}
                               disabled={

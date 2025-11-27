@@ -166,9 +166,9 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
           </Alert>
         )}
         {success && createdVacancy && (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800 space-y-3">
+          <Alert className="border-primary/50 bg-primary/10 text-primary">
+            <CheckCircle className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-primary space-y-3">
               <div>
                 <p className="font-semibold">{createdVacancy.titulo || "Vacante creada correctamente"}</p>
                 <p className="text-sm">{createdVacancy.descripcion}</p>
@@ -178,7 +178,7 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="text-green-700 hover:text-green-800 hover:bg-green-100"
+                  className="text-primary hover:text-primary hover:bg-primary/10"
                   onClick={() => (window.location.hash = "mis-empresas")}
                 >
                   Volver a empresas

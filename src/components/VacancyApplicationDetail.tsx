@@ -84,7 +84,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
     () =>
       selectedApplication
         ? resolveStatus(selectedApplication)
-        : { value: null, label: "Sin estado", className: "bg-amber-400/25 text-amber-700 dark:text-amber-200" },
+        : { value: null, label: "Sin estado", className: "bg-secondary text-secondary-foreground" },
     [selectedApplication]
   );
   const appliedAt = useMemo(
@@ -225,7 +225,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
   }, [applicationId, statusValue, applicationIndex]);
 
   return (
-    <Card className="border border-border/40 bg-white/85 shadow-xl backdrop-blur dark:bg-slate-900/85">
+    <Card className="border border-border/40 shadow-xl backdrop-blur">
       <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <Badge variant="outline" className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -273,21 +273,21 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
         )}
 
         {loading && (
-          <div className="flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-white/70 py-16 text-sm text-muted-foreground shadow-inner backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/60">
+          <div className="flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-card py-16 text-sm text-muted-foreground shadow-inner backdrop-blur">
             <Loader2 className="h-5 w-5 animate-spin" />
             Cargando información de la postulación...
           </div>
         )}
 
         {!loading && !error && !selectedApplication && (
-          <div className="rounded-xl border border-dashed border-border/60 bg-white/60 p-10 text-center text-sm text-muted-foreground backdrop-blur dark:bg-slate-900/60">
+          <div className="rounded-xl border border-dashed border-border/60 bg-card p-10 text-center text-sm text-muted-foreground backdrop-blur">
             No encontramos la postulación solicitada. Vuelve al listado e inténtalo nuevamente.
           </div>
         )}
 
         {!loading && !error && selectedApplication && (
           <div className="grid gap-6 xl:grid-cols-[minmax(0,3.5fr)_minmax(0,1fr)] xl:items-start">
-            <div className="flex min-h-[calc(100vh-160px)] w-full flex-col overflow-hidden rounded-xl border border-border/50 bg-white/95 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
+            <div className="flex min-h-[calc(100vh-160px)] w-full flex-col overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm backdrop-blur">
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/50 p-6">
                 <div className="space-y-2">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Hoja de vida</p>
@@ -360,7 +360,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
             </div>
 
             <div className="flex w-full flex-col gap-4 xl:max-w-[360px] xl:self-stretch">
-              <div className="flex flex-1 flex-col rounded-xl border border-border/50 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
+              <div className="flex flex-1 flex-col rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
                 <h4 className="text-base font-semibold text-foreground">Descripción de la vacante</h4>
                 <div className="mt-3 flex-1 overflow-y-auto rounded-lg border border-border/40 bg-muted/15 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
                   {vacancy?.descripcion
@@ -368,7 +368,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
                     : <span className="block">Sin descripción registrada para esta vacante.</span>}
                 </div>
               </div>
-              <div className="flex flex-1 flex-col rounded-xl border border-border/50 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
+              <div className="flex flex-1 flex-col rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
                 <h4 className="text-base font-semibold text-foreground">Requisitos</h4>
                 <div className="mt-3 flex-1 overflow-y-auto rounded-lg border border-border/40 bg-muted/15 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
                   {vacancy?.requisitos
@@ -381,7 +381,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
         )}
 
         {!loading && !error && selectedApplication && (
-          <div className="rounded-xl border border-border/50 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
+          <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
             <div className="flex flex-col gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-foreground">Comentarios internos</h3>

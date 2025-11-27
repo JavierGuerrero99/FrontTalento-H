@@ -73,7 +73,7 @@ export function CompanyList({ onSelectCompany }: CompanyListProps) {
       {companies.map((company) => (
         <Card key={company.id} className="flex flex-col hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-col items-center text-center">
-            <Avatar className="w-24 h-24 mb-4 rounded-full overflow-hidden border border-border/60 bg-white/80 dark:bg-slate-900/80">
+            <Avatar className="w-24 h-24 mb-4 rounded-full overflow-hidden border border-border/60 bg-card">
               {getLogoUrl(company) ? (
                 <ImageWithFallback
                   src={getLogoUrl(company)}

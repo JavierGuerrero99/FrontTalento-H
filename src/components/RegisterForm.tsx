@@ -169,8 +169,8 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                   </p>
                 )}
                 {!candidateForm.formState.errors.email && submitError?.includes("correo ya está en uso") && (
-                  <div className="mt-1 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-start gap-2">
-                    <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-amber-500" />
+                  <div className="mt-1 flex items-start gap-2 rounded-md border border-border/60 bg-secondary/40 px-3 py-2 text-xs text-primary">
+                    <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-primary" />
                     <span>Este correo ya está registrado. Prueba con otro o inicia sesión.</span>
                   </div>
                 )}

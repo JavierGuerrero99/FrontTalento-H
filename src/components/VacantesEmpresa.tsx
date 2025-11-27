@@ -327,7 +327,7 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
 
         {/* Success */}
         {success && (
-          <Alert className="mb-6 border-green-500/60 bg-green-50 text-green-800">
+          <Alert className="mb-6 border-primary/50 bg-primary/10 text-primary">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{success}</AlertDescription>
           </Alert>
@@ -381,7 +381,11 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                       </div>
                       <Badge
                         variant={isPublicado ? "default" : "secondary"}
-                        className={isPublicado ? "bg-green-500 text-white hover:bg-green-600" : "bg-yellow-400/20 text-yellow-800"}
+                        className={
+                          isPublicado
+                            ? "bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                            : "bg-secondary/70 text-primary"
+                        }
                       >
                         {isPublicado ? "Publicado" : "Borrador"}
                       </Badge>
@@ -402,11 +406,11 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                           ID #{vacante.id}
                         </Badge>
                         {isPublicado ? (
-                          <Badge variant="outline" className="text-[11px] border-green-500/60 text-green-700">
+                          <Badge variant="outline" className="text-[11px] border-primary/60 text-primary">
                             Visible para candidatos
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[11px] border-yellow-500/60 text-yellow-700">
+                          <Badge variant="outline" className="text-[11px] border-secondary/60 text-primary">
                             En borrador
                           </Badge>
                         )}

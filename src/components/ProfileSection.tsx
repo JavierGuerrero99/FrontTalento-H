@@ -319,8 +319,8 @@ export function ProfileSection() {
             </Alert>
           )}
           {success && (
-            <Alert className="border-green-500/60 bg-green-50 text-green-800">
-              <AlertDescription>{success}</AlertDescription>
+            <Alert className="border-primary/50 bg-primary/10 text-primary">
+              <AlertDescription className="text-primary">{success}</AlertDescription>
             </Alert>
           )}
           {/* Avatar Section */}
@@ -523,7 +523,7 @@ export function ProfileSection() {
                   onClick={handleSaveAdditional}
                   disabled={savingAdditional}
                   variant="outline"
-                  className="flex-1 bg-white text-black hover:bg-muted border border-input shadow-sm"
+                  className="flex-1 border border-border/60 bg-card text-foreground shadow-sm hover:bg-secondary/60"
                 >
                   {savingAdditional ? "Guardando datos..." : "Guardar datos adicionales"}
                 </Button>

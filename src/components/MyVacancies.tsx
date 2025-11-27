@@ -163,15 +163,15 @@ const getStatusBadgeStyles = (estado: string) => {
     case "publicado":
     case "activa":
     case "abierta":
-      return "bg-emerald-500 text-white shadow-sm hover:bg-emerald-600";
+      return "bg-primary text-primary-foreground shadow-sm";
     case "pendiente":
     case "revision":
-      return "bg-sky-500/90 text-white hover:bg-sky-600";
+      return "bg-secondary text-secondary-foreground";
     case "cerrada":
     case "finalizada":
-      return "bg-rose-500 text-white hover:bg-rose-600";
+      return "bg-accent text-accent-foreground";
     default:
-      return "bg-amber-400/25 text-amber-700 dark:text-amber-200";
+      return "bg-muted text-muted-foreground";
   }
 };
 
@@ -188,7 +188,7 @@ const AssignedVacancyCard = ({ vacancy, onViewVacancy }: AssignedVacancyCardProp
   return (
     <Card
       key={vacancy.id}
-      className="flex h-full flex-col border border-border/40 bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl dark:bg-slate-900/70"
+      className="flex h-full flex-col border border-border/40 shadow-lg backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
       role="listitem"
       aria-labelledby={`vacancy-${vacancy.id}-title`}
     >
@@ -399,21 +399,21 @@ export function MyVacancies({ userId = null, userEmail = null, onViewVacancy, on
   }
   return (
     <section
-      className="relative isolate w-full overflow-hidden rounded-3xl border border-border/30 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-6 shadow-2xl dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 sm:p-8"
+      className="relative isolate w-full overflow-hidden rounded-3xl border border-border/30 bg-card p-6 shadow-2xl sm:p-8"
       aria-labelledby="assigned-vacancies-heading"
     >
-      <div className="pointer-events-none absolute -top-24 -right-16 -z-10 h-64 w-64 rounded-full bg-sky-300/40 blur-3xl dark:bg-indigo-500/30" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/3 -z-10 h-72 w-72 rounded-full bg-violet-400/30 blur-3xl dark:bg-fuchsia-500/20" />
+      <div className="pointer-events-none absolute -top-24 -right-16 -z-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl dark:bg-foreground/30" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl dark:bg-foreground/40" />
 
       <div className="space-y-10">
         <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-white/60 px-4 py-1 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground shadow-sm backdrop-blur dark:bg-slate-900/60">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-card px-4 py-1 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground shadow-sm backdrop-blur">
               <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
               Panel RRHH
             </div>
             <div className="space-y-2">
-              <h2 id="assigned-vacancies-heading" className="text-3xl font-semibold text-slate-900 dark:text-slate-50 sm:text-4xl">
+              <h2 id="assigned-vacancies-heading" className="text-3xl font-semibold text-primary sm:text-4xl">
                 Mis vacantes asignadas
               </h2>
               <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -426,7 +426,7 @@ export function MyVacancies({ userId = null, userEmail = null, onViewVacancy, on
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="gap-2 text-muted-foreground hover:bg-slate-900/10 dark:hover:bg-slate-100/10"
+              className="gap-2 text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary/20"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Volver
@@ -446,7 +446,7 @@ export function MyVacancies({ userId = null, userEmail = null, onViewVacancy, on
 
         {loading && (
           <div
-            className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200/60 bg-white/70 px-6 py-16 text-muted-foreground shadow-inner backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/50"
+            className="flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card px-6 py-16 text-muted-foreground shadow-inner backdrop-blur"
             role="status"
           >
             <Briefcase className="h-10 w-10 animate-spin text-primary" aria-hidden="true" />
@@ -455,14 +455,14 @@ export function MyVacancies({ userId = null, userEmail = null, onViewVacancy, on
         )}
 
         {!loading && error && (
-          <Alert variant="destructive" role="alert" className="rounded-2xl border border-red-200/60 bg-red-50/80 backdrop-blur">
+          <Alert variant="destructive" role="alert" className="rounded-2xl border border-border/60 bg-card shadow-inner backdrop-blur">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {!loading && !error && !hasVacancies && (
           <div
-            className="flex flex-col items-center gap-5 rounded-2xl border border-slate-200/60 bg-white/70 px-6 py-16 text-center text-muted-foreground shadow-inner backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/50"
+            className="flex flex-col items-center gap-5 rounded-2xl border border-border/60 bg-card px-6 py-16 text-center text-muted-foreground shadow-inner backdrop-blur"
             role="status"
           >
             <Briefcase className="h-12 w-12 text-primary" aria-hidden="true" />

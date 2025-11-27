@@ -187,9 +187,9 @@ export function CompanyCard({
         {!editMode ? (
           <div className="space-y-6">
             {successMessage && (
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+              <Alert className="border-primary/50 bg-primary/10 text-primary">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-primary">{successMessage}</AlertDescription>
               </Alert>
             )}
             <div className="prose">

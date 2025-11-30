@@ -388,12 +388,8 @@ export function MyVacancies({ userId = null, userEmail = null, onViewVacancy, on
 
   if (!userId && !userEmail) {
     return (
-      <div className="w-full" role="status" aria-live="polite">
-        <Alert>
-          <AlertDescription>
-            No pudimos determinar tu usuario. Vuelve a iniciar sesión para ver tus vacantes asignadas.
-          </AlertDescription>
-        </Alert>
+      <div className="w-full text-center text-muted-foreground" role="status" aria-live="polite">
+        No pudimos determinar tu usuario. Vuelve a iniciar sesión para ver tus vacantes asignadas.
       </div>
     );
   }
@@ -454,11 +450,7 @@ export function MyVacancies({ userId = null, userEmail = null, onViewVacancy, on
           </div>
         )}
 
-        {!loading && error && (
-          <Alert variant="destructive" role="alert" className="rounded-2xl border border-border/60 bg-card shadow-inner backdrop-blur">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        {/* error solo toast, Alert removido */}
 
         {!loading && !error && !hasVacancies && (
           <div

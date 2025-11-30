@@ -139,16 +139,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
         />
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
-            {applySuccess && (
-              <Alert className="mb-4 border-primary/50 bg-primary/10 text-primary">
-                <AlertDescription className="text-primary">{applySuccess}</AlertDescription>
-              </Alert>
-            )}
-            {applyError && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{applyError}</AlertDescription>
-              </Alert>
-            )}
+            {/* applySuccess/applyError solo toast, Alert removido */}
             {selectedFile && (
               <div className="mb-4 overflow-hidden rounded-lg border border-muted bg-background shadow-sm">
                 <div className="flex items-center gap-3 border-b border-muted/60 bg-muted/20 px-4 py-3">
@@ -184,11 +175,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
                 </div>
               </div>
             )}
-            {infoMessage && (
-              <Alert className="mb-4 border-primary/50 bg-primary/10 text-primary">
-                <AlertDescription className="text-primary">{infoMessage}</AlertDescription>
-              </Alert>
-            )}
+            {/* infoMessage solo toast, Alert removido */}
             <DialogHeader className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">

@@ -394,11 +394,7 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
           )}
         </div>
 
-        {error && !loading && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        {/* error solo toast, Alert removido */}
 
         {loading && (
           <div className="flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-card py-12 text-sm text-muted-foreground shadow-inner backdrop-blur">

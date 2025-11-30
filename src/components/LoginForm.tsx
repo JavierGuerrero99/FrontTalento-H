@@ -124,11 +124,7 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
           </div>
 
           {/* Error de envío */}
-          {submitError && (
-            <Alert variant="destructive">
-              <AlertDescription>{submitError}</AlertDescription>
-            </Alert>
-          )}
+          {/* submitError solo toast, Alert removido */}
 
           {/* Botón de submit */}
           <Button

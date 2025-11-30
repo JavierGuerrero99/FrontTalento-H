@@ -58,16 +58,7 @@ export function PasswordRecover({ onBack }: { onBack?: () => void }) {
         <CardDescription className="text-center">Ingresa tu correo para recibir instrucciones</CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {message && (
-          <Alert>
-            <AlertDescription>{message}</AlertDescription>
-          </Alert>
-        )}
+        {/* Error y mensaje solo toast, Alert removido */}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">

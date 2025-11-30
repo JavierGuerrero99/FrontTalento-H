@@ -100,11 +100,7 @@ export function AssignVacancyHrDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {assignError && (
-          <Alert variant="destructive">
-            <AlertDescription>{assignError}</AlertDescription>
-          </Alert>
-        )}
+        {/* assignError solo toast, Alert removido */}
 
         <div className="space-y-4">
           <div className="space-y-2">

@@ -216,11 +216,7 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                 )}
               </div>
 
-              {submitError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{submitError}</AlertDescription>
-                </Alert>
-              )}
+              {/* submitError solo toast, Alert removido */}
 
               <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
                 {isSubmitting ? "Registrando..." : "Registrarme"}

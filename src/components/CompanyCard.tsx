@@ -186,12 +186,7 @@ export function CompanyCard({
       <CardContent>
         {!editMode ? (
           <div className="space-y-6">
-            {successMessage && (
-              <Alert className="border-primary/50 bg-primary/10 text-primary">
-                <CheckCircle className="h-4 w-4 text-primary" />
-                <AlertDescription className="text-primary">{successMessage}</AlertDescription>
-              </Alert>
-            )}
+            {/* successMessage toast only, Alert removed */}
             <div className="prose">
               <p><strong>Nombre:</strong> {company.nombre || company.name}</p>
               <p><strong>NIT:</strong> {company.nit}</p>
@@ -245,12 +240,7 @@ export function CompanyCard({
           </div>
         ) : (
           <div className="space-y-4 w-full max-w-xl">
-            {validationError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{validationError}</AlertDescription>
-              </Alert>
-            )}
+            {/* validationError toast only, Alert removed */}
 
             <div>
               <Label htmlFor="companyName">Nombre</Label>

@@ -117,17 +117,7 @@ export function CompanyRegistrationForm() {
       </CardHeader>
 
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {success && (
-          <Alert className="mb-4">
-            <AlertDescription>{success}</AlertDescription>
-          </Alert>
-        )}
+        {/* Error y Success solo toast, Alert removido */}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Nombre */}

@@ -313,16 +313,6 @@ export function ProfileSection() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {success && (
-            <Alert className="border-primary/50 bg-primary/10 text-primary">
-              <AlertDescription className="text-primary">{success}</AlertDescription>
-            </Alert>
-          )}
           {/* Avatar Section */}
           <div className="flex items-center gap-6">
             <Avatar className="w-24 h-24">
@@ -376,8 +366,8 @@ export function ProfileSection() {
                   id="nombres"
                   placeholder="Juan Carlos"
                   value={profile.nombres}
-                  onChange={(e) => handleChange("nombres", e.target.value)}
-                  className="pl-10"
+                  disabled
+                  className="pl-10 bg-muted cursor-not-allowed"
                 />
               </div>
             </div>
@@ -389,8 +379,8 @@ export function ProfileSection() {
                   id="apellidos"
                   placeholder="Pérez García"
                   value={profile.apellidos}
-                  onChange={(e) => handleChange("apellidos", e.target.value)}
-                  className="pl-3"
+                  disabled
+                  className="pl-3 bg-muted cursor-not-allowed"
                 />
               </div>
             </div>
@@ -406,27 +396,13 @@ export function ProfileSection() {
                   type="email"
                   placeholder="juan@ejemplo.com"
                   value={profile.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  className="pl-10"
+                  disabled
+                  className="pl-10 bg-muted cursor-not-allowed"
                 />
               </div>
             </div>
           </div>
-
-          {/* Botones de acción */}
-          <div className="flex gap-3 pt-4">
-            <Button className="flex-1" onClick={handleSave} disabled={saving}>
-              {saving ? "Guardando..." : "Guardar cambios"}
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              type="button"
-              onClick={() => window.location.reload()}
-            >
-              Cancelar
-            </Button>
-          </div>
+          {/* Botones de acción eliminados */}
         </CardContent>
       </Card>
 

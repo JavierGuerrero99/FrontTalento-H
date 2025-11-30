@@ -107,6 +107,45 @@ export const updateApplicationStatus = async (applicationId: number | string, st
   return response.data;
 };
 
+type CreateInterviewPayload = {
+  postulacion: number | string;
+  fecha: string;
+  hora: string;
+  medio: string;
+  valoracion?: string | null;
+  descripcion?: string | null;
+};
+
+export const createInterview = async ({
+  postulacion,
+  fecha,
+  hora,
+  medio,
+  valoracion = null,
+  descripcion = null,
+}: CreateInterviewPayload) => {
+  const postulacionId = String(postulacion).trim();
+  if (!postulacionId) {
+    throw new Error("No se pudo identificar la postulación para agendar la entrevista");
+  }
+
+  const payload = {
+    postulacion: Number.isNaN(Number(postulacionId)) ? postulacionId : Number(postulacionId),
+    fecha: fecha.trim(),
+    hora: hora.trim(),
+    medio: medio.trim(),
+    valoracion: valoracion ?? null,
+    descripcion: descripcion ?? null,
+  };
+
+  if (!payload.fecha || !payload.hora || !payload.medio) {
+    throw new Error("La entrevista requiere fecha, hora y medio");
+  }
+
+  const response = await api.post("/entrevistas/", payload);
+  return response.data;
+};
+
 export const markCandidateAsFavorite = async (candidateId: number | string) => {
   const sanitizedId = String(candidateId).trim();
   if (!sanitizedId) {

@@ -108,9 +108,9 @@ export function CompanyEmployees({ companyId, onBack }: CompanyEmployeesProps) {
 
     if (error) {
       return (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="text-center text-destructive bg-muted/10 rounded-xl p-4">
+          {error}
+        </div>
       );
     }
 

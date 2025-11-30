@@ -80,16 +80,7 @@ export function ResetPasswordForm({ uid, token, onGoToLogin }: ResetPasswordForm
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-3">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {success && (
-            <Alert className="mb-3">
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
+          {/* error y success solo toast, Alert removido */}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">

@@ -159,34 +159,7 @@ export function CreateVacancyForm({ companyId, onCreated, onNavigate }: CreateVa
   return (
     <form className="w-full max-w-3xl" onSubmit={handleSubmit}>
       <div className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {success && createdVacancy && (
-          <Alert className="border-primary/50 bg-primary/10 text-primary">
-            <CheckCircle className="h-4 w-4 text-primary" />
-            <AlertDescription className="text-primary space-y-3">
-              <div>
-                <p className="font-semibold">{createdVacancy.titulo || "Vacante creada correctamente"}</p>
-                <p className="text-sm">{createdVacancy.descripcion}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="text-primary hover:text-primary hover:bg-primary/10"
-                  onClick={() => (window.location.hash = "mis-empresas")}
-                >
-                  Volver a empresas
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* Solo notificaciones toast, sin Alert ni bloque de éxito inline */}
 
         <div>
           <Label htmlFor="titulo">Título</Label>

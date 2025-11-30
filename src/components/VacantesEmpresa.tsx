@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle, Edit, Trash2, Send, Calendar, Briefcase, UserCog } from "lucide-react";
@@ -22,10 +23,30 @@ import { AssignVacancyHrDialog } from "./AssignVacancyHrDialog";
 
 interface VacantesEmpresaProps {
   empresaId: number;
+  onViewReport?: (vacancyId: number) => void;
 }
 
 
-export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
+export function VacantesEmpresa({ empresaId, onViewReport }: VacantesEmpresaProps) {
+  const [reportVacancyId, setReportVacancyId] = useState<number | null>(null);
+  const [reportData, setReportData] = useState<any | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  const handleReportClick = async (vacancyId: number) => {
+    setReportVacancyId(vacancyId);
+    setReportLoading(true);
+    setReportError(null);
+    try {
+      const res = await axios.get(`http://127.0.0.1:8000/api/metrics/?id_vacante=${vacancyId}`);
+      setReportData(res.data);
+    } catch (e: any) {
+      setReportError("No se pudo cargar el reporte de la vacante.");
+      setReportData(null);
+    } finally {
+      setReportLoading(false);
+    }
+  };
   const colombiaCities = [
     "Bogotá",
     "Medellín",
@@ -317,21 +338,7 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
           </div>
         )}
 
-        {/* Error */}
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Success */}
-        {success && (
-          <Alert className="mb-6 border-primary/50 bg-primary/10 text-primary">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{success}</AlertDescription>
-          </Alert>
-        )}
+        {/* Error y Success solo toast, Alert removido */}
 
         {/* Empty State (sin vacantes) */}
         {!loading && !error && vacantes.length === 0 && (
@@ -454,6 +461,22 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
                           <Trash2 className="w-4 h-4" />
                           Eliminar
                         </Button>
+                        {isPublicado && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="gap-2 bg-primary text-white"
+                            onClick={() => {
+                              if (onViewReport) {
+                                onViewReport(vacante.id);
+                              } else {
+                                handleReportClick(vacante.id);
+                              }
+                            }}
+                          >
+                            📊 Reporte
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -462,6 +485,22 @@ export function VacantesEmpresa({ empresaId }: VacantesEmpresaProps) {
             })}
           </div>
         )}
+                {/* Report View */}
+                {reportVacancyId && (
+                  <div className="mt-8 p-6 rounded-xl border border-primary/30 bg-primary/5">
+                    <h2 className="text-2xl font-bold mb-4 text-primary">Reporte de Vacante #{reportVacancyId}</h2>
+                    {reportLoading && <p className="text-muted-foreground">Cargando reporte...</p>}
+                    {reportError && <p className="text-destructive">{reportError}</p>}
+                    {reportData && (
+                      <pre className="bg-muted/20 p-4 rounded text-xs overflow-x-auto">
+                        {JSON.stringify(reportData, null, 2)}
+                      </pre>
+                    )}
+                    <Button variant="outline" className="mt-4" onClick={() => setReportVacancyId(null)}>
+                      Cerrar reporte
+                    </Button>
+                  </div>
+                )}
         {/* Edit Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent>

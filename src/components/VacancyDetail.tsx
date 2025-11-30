@@ -37,7 +37,10 @@ export function VacancyDetail({ vacancyId, onBack }: VacancyDetailProps) {
   }, [vacancyId]);
 
   if (loading) return <div className="text-center py-8">Cargando vacante...</div>;
-  if (error) return <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert>;
+  if (error) {
+    // Solo toast notification
+    return null;
+  }
   if (!vacancy) return null;
 
   return (

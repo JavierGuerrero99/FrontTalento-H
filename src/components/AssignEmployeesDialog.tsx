@@ -122,17 +122,7 @@ export function AssignEmployeesDialog({ open, companyId, onOpenChange }: AssignE
             </section>
 
             <div className="space-y-3" aria-live="polite" aria-atomic="true">
-              {successMessage && (
-                <Alert className="border border-border/60 bg-secondary/40 text-primary">
-                  <AlertDescription>{successMessage}</AlertDescription>
-                </Alert>
-              )}
-
-              {assignError && (
-                <Alert variant="destructive" role="alert">
-                  <AlertDescription>{assignError}</AlertDescription>
-                </Alert>
-              )}
+              {/* successMessage y assignError solo toast, Alert removido */}
             </div>
 
             <div className="flex flex-col-reverse items-center gap-2 pt-2 sm:flex-row sm:justify-end">

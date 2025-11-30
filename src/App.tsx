@@ -14,6 +14,7 @@ import { VacancyDetail } from "./components/VacancyDetail";
 import { VacancyApplications } from "./components/VacancyApplications";
 import { VacancyApplicationDetail } from "./components/VacancyApplicationDetail";
 import { VacantesEmpresa } from "./components/VacantesEmpresa";
+import { VacancyReport } from "./components/VacancyReport";
 import { CompanyEmployees } from "./components/CompanyEmployees";
 import { Toaster } from "react-hot-toast";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "./components/ui/dialog";
@@ -279,13 +280,28 @@ export default function App() {
                 </div>
               );
             }
+            // Check for report subview: empresa-<id>-vacantes-reporte-<vacancyId>
+            const reportMatch = activeSection.match(/^empresa-(\d+)-vacantes-reporte-(\d+)$/);
+            if (reportMatch) {
+              const empresaId = Number(reportMatch[1]);
+              const vacancyId = Number(reportMatch[2]);
+              return (
+                <VacancyReport
+                  vacancyId={vacancyId}
+                  onBack={() => handleNavigate(`empresa-${empresaId}-vacantes`, { replace: true })}
+                />
+              );
+            }
             if (activeSection.endsWith("vacantes")) {
               return (
                 <div className="w-full flex flex-col items-center gap-6">
                   <div className="text-center space-y-2">
                     <h1 className="text-primary">Vacantes de la Empresa</h1>
                   </div>
-                  <VacantesEmpresa empresaId={id} />
+                  <VacantesEmpresa
+                    empresaId={id}
+                    onViewReport={(vacancyId: number) => handleNavigate(`empresa-${id}-vacantes-reporte-${vacancyId}`)}
+                  />
                 </div>
               );
             }

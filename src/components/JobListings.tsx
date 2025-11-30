@@ -153,12 +153,7 @@ export function JobListings() {
           </div>
         )}
 
-        {error && !loading && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        {/* error solo toast, Alert removido */}
 
         {/* Grid de trabajos */}
         {!loading && !error && filteredJobs.length > 0 ? (
@@ -170,13 +165,10 @@ export function JobListings() {
             ))}
           </div>
         ) : !loading && !error ? (
-          <Alert>
+          <div className="flex items-center gap-2 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No se encontraron trabajos que coincidan con tus criterios de búsqueda.
-              Intenta ajustar los filtros o buscar otros términos.
-            </AlertDescription>
-          </Alert>
+            <span>No se encontraron trabajos que coincidan con tus criterios de búsqueda. Intenta ajustar los filtros o buscar otros términos.</span>
+          </div>
         ) : null}
       </div>
 

@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/
 import { Alert, AlertDescription } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { ArrowLeft, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { ArrowLeft, CalendarClock, ExternalLink, Loader2, RefreshCw, ClipboardList, FileText, NotebookPen } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { commentOnApplication, getVacancy, getVacancyApplications, updateApplicationStatus } from "../services/api";
+import { commentOnApplication, getVacancy, getVacancyApplications, updateApplicationStatus, createInterview } from "../services/api";
 import {
   enhanceResumeViewerUrl,
   findApplicationBySlug,
@@ -21,6 +21,10 @@ import {
 } from "../lib/vacancyApplicationsUtils";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { toast } from "react-hot-toast";
 
 const STATUS_OPTIONS = [
@@ -48,6 +52,12 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [statusValue, setStatusValue] = useState("");
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [isInterviewDialogOpen, setInterviewDialogOpen] = useState(false);
+  const [interviewDate, setInterviewDate] = useState("");
+  const [interviewTime, setInterviewTime] = useState("");
+  const [interviewMedium, setInterviewMedium] = useState("Google Meet");
+  const [interviewDescription, setInterviewDescription] = useState("");
+  const [interviewSubmitting, setInterviewSubmitting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -224,8 +234,80 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
     }
   }, [applicationId, statusValue, applicationIndex]);
 
+  const resetInterviewForm = useCallback(() => {
+    setInterviewDate("");
+    setInterviewTime("");
+    setInterviewMedium("Google Meet");
+    setInterviewDescription("");
+  }, []);
+
+  const handleInterviewDialogChange = useCallback(
+    (open: boolean) => {
+      setInterviewDialogOpen(open);
+      if (!open) {
+        setInterviewSubmitting(false);
+        resetInterviewForm();
+      }
+    },
+    [resetInterviewForm, setInterviewSubmitting],
+  );
+
+  const canScheduleInterview = useMemo(() => {
+    const effectiveStatus = `${statusValue || candidateStatus.value || ""}`
+      .trim()
+      .toLowerCase();
+    return Boolean(applicationId && effectiveStatus === "entrevista");
+  }, [applicationId, candidateStatus.value, statusValue]);
+
+  const handleScheduleInterview = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (!applicationId) {
+        toast.error("No encontramos el identificador de la postulación para agendar la entrevista.");
+        return;
+      }
+
+      const date = interviewDate.trim();
+      const time = interviewTime.trim();
+      const medium = interviewMedium.trim();
+      const description = interviewDescription.trim();
+
+      if (!date || !time || !medium) {
+        toast.error("Completa la fecha, hora y medio de la entrevista.");
+        return;
+      }
+
+      try {
+        setInterviewSubmitting(true);
+        await createInterview({
+          postulacion: applicationId,
+          fecha: date,
+          hora: time,
+          medio: medium,
+          valoracion: null,
+          descripcion: description || null,
+        });
+        toast.success("Entrevista agendada correctamente.");
+        setInterviewDialogOpen(false);
+        resetInterviewForm();
+      } catch (scheduleError: any) {
+        const backendMessage =
+          scheduleError?.response?.data?.detail ||
+          scheduleError?.response?.data?.mensaje ||
+          scheduleError?.response?.data?.error ||
+          scheduleError?.message;
+        toast.error(backendMessage || "No se pudo agendar la entrevista. Inténtalo nuevamente.");
+      } finally {
+        setInterviewSubmitting(false);
+      }
+    },
+    [applicationId, interviewDate, interviewDescription, interviewMedium, interviewTime, resetInterviewForm],
+  );
+
   return (
-    <Card className="border border-border/40 shadow-xl backdrop-blur">
+    <>
+      <Card className="border border-border/40 shadow-xl backdrop-blur">
       <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <Badge variant="outline" className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -265,12 +347,8 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {error && !loading && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      <CardContent className="space-y-10">
+        {/* error solo toast, Alert removido */}
 
         {loading && (
           <div className="flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-card py-16 text-sm text-muted-foreground shadow-inner backdrop-blur">
@@ -286,7 +364,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
         )}
 
         {!loading && !error && selectedApplication && (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,3.5fr)_minmax(0,1fr)] xl:items-start">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,3.5fr)_minmax(0,1fr)] xl:items-start">
             <div className="flex min-h-[calc(100vh-160px)] w-full flex-col overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm backdrop-blur">
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/50 p-6">
                 <div className="space-y-2">
@@ -296,50 +374,82 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
                     Postulado: {formatDateTime(appliedAt)}
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                  <Badge variant="secondary" className={`self-start px-3 py-1 text-xs capitalize ${candidateStatus.className}`}>
+                <div className="flex w-full flex-col gap-4 text-sm text-muted-foreground">
+                  <Badge variant="secondary" className={`self-start rounded-full px-3 py-1 text-xs capitalize ${candidateStatus.className}`}>
                     {candidateStatus.label}
                   </Badge>
-                  <div className="flex items-center gap-2">
-                    <Select value={statusValue} onValueChange={setStatusValue}>
-                      <SelectTrigger className="w-[200px] text-left">
-                        <SelectValue placeholder="Seleccionar estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="gap-2"
-                      onClick={handleUpdateStatus}
-                      disabled={
-                        statusUpdating ||
-                        !statusValue.trim() ||
-                        statusValue.trim() === (typeof candidateStatus.value === "string" ? candidateStatus.value : "")
-                      }
-                    >
-                      {statusUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                      {statusUpdating ? "Actualizando..." : "Actualizar estado"}
-                    </Button>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-xl border border-border/40 bg-muted/10 p-4 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Estado de la postulación</Label>
+                          <Select value={statusValue} onValueChange={setStatusValue}>
+                            <SelectTrigger className="text-left">
+                              <SelectValue placeholder="Seleccionar estado" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {STATUS_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="w-full gap-2"
+                          onClick={handleUpdateStatus}
+                          disabled={
+                            statusUpdating ||
+                            !statusValue.trim() ||
+                            statusValue.trim() === (typeof candidateStatus.value === "string" ? candidateStatus.value : "")
+                          }
+                        >
+                          {statusUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          {statusUpdating ? "Actualizando..." : "Actualizar estado"}
+                        </Button>
+                        {canScheduleInterview ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="w-full gap-2"
+                            onClick={() => setInterviewDialogOpen(true)}
+                          >
+                            <CalendarClock className="h-4 w-4" />
+                            Agendar entrevista
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-border/40 bg-muted/10 p-4 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Hoja de vida</Label>
+                          <p className="text-xs leading-relaxed">
+                            Abre el documento original en otra pestaña para revisarlo con más detalle o descargarlo.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={handleOpenResume}
+                          disabled={!resumeUrl}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Abrir en pestaña nueva
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 gap-2"
-                    onClick={handleOpenResume}
-                    disabled={!resumeUrl}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Abrir en pestaña nueva
-                  </Button>
+                  <Separator className="bg-border/40" />
+                  <div className="text-xs leading-relaxed text-muted-foreground/80">
+                    Estos cambios son visibles solo para el equipo de selección y ayudan a coordinar los siguientes pasos del proceso.
+                  </div>
                 </div>
               </div>
               <div className="flex flex-1 items-stretch bg-muted/40">
@@ -361,7 +471,10 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
 
             <div className="flex w-full flex-col gap-4 xl:max-w-[360px] xl:self-stretch">
               <div className="flex flex-1 flex-col rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
-                <h4 className="text-base font-semibold text-foreground">Descripción de la vacante</h4>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <h4 className="text-base font-semibold text-foreground">Descripción de la vacante</h4>
+                </div>
                 <div className="mt-3 flex-1 overflow-y-auto rounded-lg border border-border/40 bg-muted/15 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
                   {vacancy?.descripcion
                     ? renderMultilineText(vacancy.descripcion)
@@ -369,7 +482,10 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
                 </div>
               </div>
               <div className="flex flex-1 flex-col rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
-                <h4 className="text-base font-semibold text-foreground">Requisitos</h4>
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <h4 className="text-base font-semibold text-foreground">Requisitos</h4>
+                </div>
                 <div className="mt-3 flex-1 overflow-y-auto rounded-lg border border-border/40 bg-muted/15 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
                   {vacancy?.requisitos
                     ? renderMultilineText(vacancy.requisitos)
@@ -382,97 +498,186 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
 
         {!loading && !error && selectedApplication && (
           <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
-            <div className="flex flex-col gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Comentarios internos</h3>
-                <p className="text-sm text-muted-foreground">
-                  Registra notas sobre el postulante. Estos mensajes se envían mediante el endpoint de contacto.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmitComment} className="flex flex-col gap-4">
-                <Input
-                  value={commentSubject}
-                  onChange={(event) => setCommentSubject(event.target.value)}
-                  placeholder="Asunto del comentario"
-                  maxLength={120}
-                  disabled={commentSubmitting}
-                />
-                <Textarea
-                  value={commentValue}
-                  onChange={(event) => setCommentValue(event.target.value)}
-                  placeholder="Escribe aquí tus comentarios internos..."
-                  minLength={3}
-                  rows={4}
-                  disabled={commentSubmitting}
-                />
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    {applicationId
-                      ? "Los comentarios se almacenan sin mostrarse al postulante."
-                      : "No pudimos identificar el ID de la postulación."}
+            <Accordion type="multiple" defaultValue={["internal-notes", "comments-history"]} className="space-y-4">
+              <AccordionItem
+                value="internal-notes"
+                className="overflow-hidden rounded-lg border border-border/40 bg-muted/10"
+              >
+                <AccordionTrigger className="px-4 py-3 text-left text-sm font-semibold text-foreground">
+                  <span className="inline-flex items-center gap-2">
+                    <NotebookPen className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Comentarios internos
                   </span>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={commentSubmitting || !applicationId}
-                    className="gap-2"
-                  >
-                    {commentSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {commentSubmitting ? "Enviando..." : "Guardar comentario"}
-                  </Button>
-                </div>
-              </form>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4 text-sm text-muted-foreground">
+                  <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                    Registra notas sobre el postulante. Estos mensajes se envían mediante el endpoint de contacto.
+                  </p>
+                  <form onSubmit={handleSubmitComment} className="flex flex-col gap-4">
+                    <Input
+                      value={commentSubject}
+                      onChange={(event) => setCommentSubject(event.target.value)}
+                      placeholder="Asunto del comentario"
+                      maxLength={120}
+                      disabled={commentSubmitting}
+                    />
+                    <Textarea
+                      value={commentValue}
+                      onChange={(event) => setCommentValue(event.target.value)}
+                      placeholder="Escribe aquí tus comentarios internos..."
+                      minLength={3}
+                      rows={4}
+                      disabled={commentSubmitting}
+                    />
+                    <div className="flex flex-col gap-3 sm:items-center sm:justify-between text-xs text-muted-foreground">
+                      <span className="leading-relaxed">
+                        {applicationId
+                          ? "Los comentarios se almacenan sin mostrarse al postulante."
+                          : "No pudimos identificar el ID de la postulación."}
+                      </span>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={commentSubmitting || !applicationId}
+                        className="gap-2 self-end sm:w-auto"
+                      >
+                        {commentSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        {commentSubmitting ? "Enviando..." : "Guardar comentario"}
+                      </Button>
+                    </div>
+                  </form>
+                </AccordionContent>
+              </AccordionItem>
 
-              <div className="border-t border-border/40 pt-4">
-                <h4 className="text-sm font-semibold text-foreground">Comentarios</h4>
-                {applicationComments.length > 0 ? (
-                  <ul className="mt-3 space-y-4">
-                    {applicationComments.map((comment, index) => {
-                      const key = comment.id ?? `comment-${index}`;
-                      const formattedDate = comment.createdAt ? formatDateTime(comment.createdAt) : null;
-                      return (
-                        <li
-                          key={key}
-                          className="rounded-lg border border-border/40 bg-muted/15 px-4 py-3 text-sm"
-                        >
-                          <div className="flex flex-col gap-1">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="font-medium text-foreground">
-                                {comment.subject?.trim() || "Comentario"}
-                              </span>
-                              {formattedDate && (
-                                <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                                  {formattedDate}
+              <AccordionItem
+                value="comments-history"
+                className="overflow-hidden rounded-lg border border-border/40 bg-muted/10"
+              >
+                <AccordionTrigger className="px-4 py-3 text-left text-sm font-semibold text-foreground">
+                  <span className="inline-flex items-center gap-2">
+                    <NotebookPen className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Historial de comentarios
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4 text-sm text-muted-foreground">
+                  {applicationComments.length > 0 ? (
+                    <ul className="space-y-4 pt-2">
+                      {applicationComments.map((comment, index) => {
+                        const key = comment.id ?? `comment-${index}`;
+                        const formattedDate = comment.createdAt ? formatDateTime(comment.createdAt) : null;
+                        return (
+                          <li
+                            key={key}
+                            className="rounded-lg border border-border/40 bg-card/40 px-4 py-3 shadow-sm"
+                          >
+                            <div className="flex flex-col gap-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-medium text-foreground">
+                                  {comment.subject?.trim() || "Comentario"}
                                 </span>
+                                {formattedDate && (
+                                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                    {formattedDate}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="space-y-2 text-muted-foreground leading-relaxed">
+                                {comment.message
+                                  .split(/\r?\n/)
+                                  .filter((line) => line.trim().length > 0)
+                                  .map((line, lineIndex) => (
+                                    <p key={`comment-${key}-line-${lineIndex}`}>{line}</p>
+                                  ))}
+                              </div>
+                              {comment.author && (
+                                <span className="text-xs text-muted-foreground/80">Autor: {comment.author}</span>
                               )}
                             </div>
-                            <div className="text-muted-foreground leading-relaxed">
-                              {comment.message
-                                .split(/\r?\n/)
-                                .filter((line) => line.trim().length > 0)
-                                .map((line, lineIndex) => (
-                                  <p key={`comment-${key}-line-${lineIndex}`}>{line}</p>
-                                ))}
-                            </div>
-                            {comment.author && (
-                              <span className="text-xs text-muted-foreground">Autor: {comment.author}</span>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Aún no hay comentarios registrados para esta postulación.
-                  </p>
-                )}
-              </div>
-            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="pt-2 text-sm leading-relaxed text-muted-foreground">
+                      Aún no hay comentarios registrados para esta postulación.
+                    </p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+      <Dialog open={isInterviewDialogOpen} onOpenChange={handleInterviewDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agendar entrevista</DialogTitle>
+            <DialogDescription>
+              Define la fecha, hora y el medio para coordinar la reunión con la persona candidata.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleScheduleInterview} className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="interview-date">Fecha</Label>
+              <Input
+                id="interview-date"
+                type="date"
+                value={interviewDate}
+                onChange={(event) => setInterviewDate(event.target.value)}
+                disabled={interviewSubmitting}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="interview-time">Hora</Label>
+              <Input
+                id="interview-time"
+                type="time"
+                value={interviewTime}
+                onChange={(event) => setInterviewTime(event.target.value)}
+                disabled={interviewSubmitting}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="interview-medium">Medio</Label>
+              <Input
+                id="interview-medium"
+                value={interviewMedium}
+                onChange={(event) => setInterviewMedium(event.target.value)}
+                placeholder="Google Meet, Zoom o presencial"
+                disabled={interviewSubmitting}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="interview-description">Descripción (opcional)</Label>
+              <Textarea
+                id="interview-description"
+                value={interviewDescription}
+                onChange={(event) => setInterviewDescription(event.target.value)}
+                rows={3}
+                disabled={interviewSubmitting}
+              />
+            </div>
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleInterviewDialogChange(false)}
+                disabled={interviewSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={interviewSubmitting}>
+                {interviewSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {interviewSubmitting ? "Agendando..." : "Guardar entrevista"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

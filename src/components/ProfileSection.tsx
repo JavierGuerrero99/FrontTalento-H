@@ -112,6 +112,16 @@ export function ProfileSection() {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleTelefonoChange = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+    handleChange("telefono", digitsOnly);
+  };
+
+  const handleDocumentoChange = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "");
+    handleChange("documento", digitsOnly);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -436,11 +446,13 @@ export function ProfileSection() {
               <Label htmlFor="telefono">Teléfono</Label>
               <Input
                 id="telefono"
-                placeholder="Ej: +57 300 123 4567"
+                placeholder="Ej: 3001234567"
                 value={profile.telefono}
-                onChange={(e) => handleChange("telefono", e.target.value)}
+                onChange={(e) => handleTelefonoChange(e.target.value)}
                 disabled={!editingAdditional}
                 className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
+                inputMode="numeric"
+                maxLength={10}
               />
             </div>
 
@@ -462,9 +474,10 @@ export function ProfileSection() {
                 id="documento"
                 placeholder="Ej: CC 1234567890"
                 value={profile.documento}
-                onChange={(e) => handleChange("documento", e.target.value)}
+                onChange={(e) => handleDocumentoChange(e.target.value)}
                 disabled={!editingAdditional}
                 className={!editingAdditional ? "bg-muted cursor-not-allowed" : ""}
+                inputMode="numeric"
               />
             </div>
 

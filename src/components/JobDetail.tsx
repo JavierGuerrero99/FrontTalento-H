@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
-import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
@@ -15,10 +14,10 @@ import {
   Check,
   Star,
   Send,
-  Bookmark
 } from "lucide-react";
 import type { Job } from "../lib/mockJobs";
 import { applyToVacancy } from "../services/api";
+import { toast } from "react-hot-toast";
 
 interface JobDetailProps {
   job: Job | null;
@@ -29,7 +28,6 @@ interface JobDetailProps {
 export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   if (!job) return null;
 
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [applySuccess, setApplySuccess] = useState<string | null>(null);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
@@ -57,7 +55,6 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   const handleApplyClick = () => {
     setApplyError(null);
     setApplySuccess(null);
-    setInfoMessage(null);
     fileInputRef.current?.click();
   };
 
@@ -97,7 +94,9 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
     try {
       const response = await applyToVacancy(vacancyId, selectedFile);
       const backendMessage = response?.message || response?.detail;
-      setApplySuccess(backendMessage || "Postulación enviada correctamente");
+      const successMessage = backendMessage || "Postulado con exito";
+      setApplySuccess(successMessage);
+      toast.success(successMessage);
       setSelectedFile(null);
     } catch (error: any) {
       const backendData = error?.response?.data;
@@ -121,10 +120,6 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
-
-  const handleSave = () => {
-    setInfoMessage(`Trabajo guardado: ${job.title}`);
   };
 
   return (
@@ -175,7 +170,6 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
                 </div>
               </div>
             )}
-            {/* infoMessage solo toast, Alert removido */}
             <DialogHeader className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -220,14 +214,11 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
                 </Badge>
               </div>
 
-              {/* Botones de acción */}
+              {/* Botón de postulación */}
               <div className="flex gap-3">
                 <Button className="flex-1 gap-2" onClick={handleApplyClick} disabled={applying}>
                   <Send className="w-4 h-4" />
                   {applying ? "Enviando postulación..." : "Postularme a este trabajo"}
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleSave}>
-                  <Bookmark className="w-4 h-4" />
                 </Button>
               </div>
             </DialogHeader>

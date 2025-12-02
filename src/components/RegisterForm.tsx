@@ -119,7 +119,9 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
               <div className="space-y-2">
                 <Label htmlFor="first_name">Nombres</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                    <User className="w-4 h-4" />
+                  </span>
                   <Input
                     id="first_name"
                     type="text"
@@ -134,7 +136,9 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                   </p>)}
                 <Label htmlFor="last_name">Apellidos</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                    <User className="w-4 h-4" />
+                  </span>
                   <Input
                     id="last_name"
                     type="text"
@@ -154,7 +158,9 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
               <div className="space-y-2">
                 <Label htmlFor="candidate-email">Correo Electrónico</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                    <Mail className="w-4 h-4" />
+                  </span>
                   <Input
                     id="candidate-email"
                     type="email"
@@ -180,7 +186,9 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
               <div className="space-y-2">
                 <Label htmlFor="candidate-password">Contraseña</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                    <Lock className="w-4 h-4" />
+                  </span>
                   <Input
                     id="candidate-password"
                     type="password"
@@ -200,7 +208,9 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
               <div className="space-y-2">
                 <Label htmlFor="candidate-confirm-password">Confirmar Contraseña</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                    <Lock className="w-4 h-4" />
+                  </span>
                   <Input
                     id="candidate-confirm-password"
                     type="password"
@@ -222,6 +232,14 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                 {isSubmitting ? "Registrando..." : "Registrarme"}
               </Button>
             </form>
+
+        <Alert className="mt-6">
+          <AlertDescription>
+            Si quieres crear una empresa, ponte en contacto con nosotros a través de
+            {" "}
+            <span className="font-semibold">talentohub2025@gmail.com</span>
+          </AlertDescription>
+        </Alert>
 
         {/* Link para ir al login */}
         <div className="text-center text-sm mt-4">

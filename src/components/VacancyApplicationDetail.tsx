@@ -32,7 +32,7 @@ const STATUS_OPTIONS = [
   { value: "En revisión", label: "En revisión" },
   { value: "Rechazado", label: "Rechazado" },
   { value: "Entrevista", label: "Entrevista" },
-  { value: "Proceso de Contratación", label: "Proceso de Contratación" },
+  { value: "Proceso de Contratacion", label: "Proceso de Contratacin" },
   { value: "Contratado", label: "Contratado" },
 ];
 

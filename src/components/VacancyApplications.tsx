@@ -370,7 +370,7 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
             <option value="En revisión">En revisión</option>
             <option value="Rechazado">Rechazado</option>
             <option value="Entrevista">Entrevista</option>
-            <option value="Proceso de Contratación">Proceso de Contratación</option>
+            <option value="Proceso de Contratacion">Proceso de Contratacion</option>
             <option value="Contratado">Contratado</option>
           </select>
           <Button

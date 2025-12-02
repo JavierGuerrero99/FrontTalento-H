@@ -144,13 +144,13 @@ export function JobSearch({
           </Select>
         </div>
 
-        <div className="flex items-center gap-2 border rounded-md px-3 py-2">
+        <div className="flex items-center gap-2 border rounded-md px-3 py-1.5 text-sm">
           <Switch
             id="remote-only"
             checked={remoteOnly}
             onCheckedChange={onRemoteOnlyChange}
           />
-          <Label htmlFor="remote-only" className="cursor-pointer">
+          <Label htmlFor="remote-only" className="cursor-pointer text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Solo remotos
           </Label>
         </div>

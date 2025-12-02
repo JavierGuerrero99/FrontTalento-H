@@ -32,7 +32,7 @@ const STATUS_OPTIONS = [
   { value: "En revisión", label: "En revisión" },
   { value: "Rechazado", label: "Rechazado" },
   { value: "Entrevista", label: "Entrevista" },
-  { value: "Proceso de Contratacion", label: "Proceso de Contratacin" },
+  { value: "Proceso de Contratacion", label: "Proceso de Contratacion" },
   { value: "Contratado", label: "Contratado" },
 ];
 
@@ -281,13 +281,6 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
     return Boolean(applicationId && effectiveStatus === "entrevista");
   }, [applicationId, candidateStatus.value, statusValue]);
 
-  const canReviewInterview = useMemo(() => {
-    const effectiveStatus = `${statusValue || candidateStatus.value || ""}`
-      .trim()
-      .toLowerCase();
-    return ["entrevista", "proceso de contratación", "contratado"].includes(effectiveStatus);
-  }, [candidateStatus.value, statusValue]);
-
   const handleScheduleInterview = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -440,32 +433,17 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
                           {statusUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                           {statusUpdating ? "Actualizando..." : "Actualizar estado"}
                         </Button>
-                        {(canScheduleInterview || canReviewInterview) ? (
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {canScheduleInterview ? (
-                              <Button
-                                type="button"
-                                size="sm"
-                                className="w-full gap-2"
-                                onClick={() => setInterviewDialogOpen(true)}
-                              >
-                                <CalendarClock className="h-4 w-4" />
-                                Agendar entrevista
-                              </Button>
-                            ) : null}
-                            {canReviewInterview ? (
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                className="w-full gap-2"
-                                onClick={() => !reviewSubmitting && setReviewDialogOpen(true)}
-                                disabled={reviewSubmitting}
-                              >
-                                <NotebookPen className="h-4 w-4" />
-                                Valorar
-                              </Button>
-                            ) : null}
+                        {canScheduleInterview ? (
+                          <div className="grid gap-2 sm:grid-cols-1">
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={() => setInterviewDialogOpen(true)}
+                            >
+                              <CalendarClock className="h-4 w-4" />
+                              Agendar entrevista
+                            </Button>
                           </div>
                         ) : null}
                       </div>
@@ -652,7 +630,6 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
               </AccordionItem>
             </Accordion>
           </div>
-        )
       </CardContent>
       </Card>
       <Dialog open={isInterviewDialogOpen} onOpenChange={handleInterviewDialogChange}>

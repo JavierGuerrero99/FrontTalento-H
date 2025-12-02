@@ -71,7 +71,7 @@ export function CompanyList({ onSelectCompany }: CompanyListProps) {
   return (
     <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {companies.map((company) => (
-        <Card key={company.id} className="flex flex-col hover:shadow-md transition-shadow">
+        <Card key={company.id} className="flex h-full flex-col hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="w-24 h-24 mb-4 rounded-full overflow-hidden border border-border/60 bg-card">
               {getLogoUrl(company) ? (
@@ -87,9 +87,9 @@ export function CompanyList({ onSelectCompany }: CompanyListProps) {
             <CardTitle className="text-base line-clamp-2">{getCompanyName(company)}</CardTitle>
             <CardDescription className="text-sm">NIT: {company.nit}</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-end w-full">
+          <CardContent className="flex w-full flex-1 flex-col justify-end gap-4">
             {company.descripcion && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-4 text-center">{company.descripcion}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 text-center">{company.descripcion}</p>
             )}
             <Button
               variant="outline"

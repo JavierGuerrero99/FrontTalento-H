@@ -7,9 +7,8 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Upload, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "./ui/alert";
-import axios from "axios";
+import { Upload } from "lucide-react";
+import api from "../services/api";
 import { getAuthHeaders } from "../services/auth";
 import { toast } from "react-hot-toast";
 
@@ -83,7 +82,7 @@ export function CompanyRegistrationForm() {
         formData.append("logo", logoFile);
       }
 
-      await axios.post("http://localhost:8000/api/empresas/", formData, {
+      await api.post("/empresas/", formData, {
         headers: {
           ...(await getAuthHeaders()),
           "Content-Type": "multipart/form-data",

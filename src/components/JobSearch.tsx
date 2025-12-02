@@ -24,8 +24,6 @@ import { Switch } from "./ui/switch";
 interface JobSearchProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  selectedCategory: string;
-  onCategoryChange: (value: string) => void;
   selectedJobType: string;
   onJobTypeChange: (value: string) => void;
   selectedExperience: string;
@@ -39,8 +37,6 @@ interface JobSearchProps {
 export function JobSearch({
   searchTerm,
   onSearchChange,
-  selectedCategory,
-  onCategoryChange,
   selectedJobType,
   onJobTypeChange,
   selectedExperience,
@@ -52,7 +48,6 @@ export function JobSearch({
 }: JobSearchProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const categories = ["Todas", "General"];
   const jobTypes = [
     "Todos",
     "Tiempo completo",
@@ -71,7 +66,6 @@ export function JobSearch({
   ];
 
   const activeFiltersCount = [
-    selectedCategory !== "Todas",
     selectedJobType !== "Todos",
     selectedExperience !== "Todos",
     remoteOnly,
@@ -79,7 +73,6 @@ export function JobSearch({
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
-    onCategoryChange("Todas");
     onJobTypeChange("Todos");
     onExperienceChange("Todos");
     onRemoteOnlyChange(false);
@@ -114,45 +107,42 @@ export function JobSearch({
       </div>
 
       {/* Filtros Desktop */}
-      <div className="hidden md:flex gap-3 items-center flex-wrap">
-        <Select value={selectedCategory} onValueChange={onCategoryChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat} value={cat}>
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="hidden md:flex gap-4 items-end flex-wrap">
+        <div className="flex flex-col gap-2">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Tipo de jornada
+          </Label>
+          <Select value={selectedJobType} onValueChange={onJobTypeChange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Tipo de jornada" />
+            </SelectTrigger>
+            <SelectContent>
+              {jobTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Select value={selectedJobType} onValueChange={onJobTypeChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tipo de empleo" />
-          </SelectTrigger>
-          <SelectContent>
-            {jobTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={selectedExperience} onValueChange={onExperienceChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Experiencia" />
-          </SelectTrigger>
-          <SelectContent>
-            {experienceLevels.map((level) => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col gap-2">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Experiencia requerida
+          </Label>
+          <Select value={selectedExperience} onValueChange={onExperienceChange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Experiencia" />
+            </SelectTrigger>
+            <SelectContent>
+              {experienceLevels.map((level) => (
+                <SelectItem key={level} value={level}>
+                  {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="flex items-center gap-2 border rounded-md px-3 py-2">
           <Switch
@@ -196,26 +186,10 @@ export function JobSearch({
             </SheetHeader>
             <div className="space-y-4 mt-6">
               <div className="space-y-2">
-                <Label>Categoría</Label>
-                <Select value={selectedCategory} onValueChange={onCategoryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tipo de empleo</Label>
+                  <Label>Tipo de jornada</Label>
                 <Select value={selectedJobType} onValueChange={onJobTypeChange}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Tipo de empleo" />
+                      <SelectValue placeholder="Tipo de jornada" />
                   </SelectTrigger>
                   <SelectContent>
                     {jobTypes.map((type) => (
@@ -228,7 +202,7 @@ export function JobSearch({
               </div>
 
               <div className="space-y-2">
-                <Label>Nivel de experiencia</Label>
+                  <Label>Experiencia requerida</Label>
                 <Select value={selectedExperience} onValueChange={onExperienceChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Experiencia" />
@@ -268,15 +242,6 @@ export function JobSearch({
       {/* Active filters badges */}
       {activeFiltersCount > 0 && (
         <div className="flex gap-2 flex-wrap">
-          {selectedCategory !== "Todas" && (
-            <Badge variant="secondary" className="gap-1">
-              {selectedCategory}
-              <X
-                className="w-3 h-3 cursor-pointer"
-                onClick={() => onCategoryChange("Todas")}
-              />
-            </Badge>
-          )}
           {selectedJobType !== "Todos" && (
             <Badge variant="secondary" className="gap-1">
               {selectedJobType}

@@ -13,7 +13,6 @@ export function JobListings() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [selectedJobType, setSelectedJobType] = useState("Todos");
   const [selectedExperience, setSelectedExperience] = useState("Todos");
   const [remoteOnly, setRemoteOnly] = useState(false);
@@ -89,10 +88,6 @@ export function JobListings() {
       const matchesLocation = location === "" || 
         job.location.toLowerCase().includes(location.toLowerCase());
 
-      // Filtro de categoría
-      const matchesCategory = 
-        selectedCategory === "Todas" || job.category === selectedCategory;
-
       // Filtro de tipo de empleo
       const matchesJobType = 
         selectedJobType === "Todos" || job.type === selectedJobType;
@@ -107,13 +102,12 @@ export function JobListings() {
       return (
         matchesSearch &&
         matchesLocation &&
-        matchesCategory &&
         matchesJobType &&
         matchesExperience &&
         matchesRemote
       );
     });
-  }, [jobs, searchTerm, location, selectedCategory, selectedJobType, selectedExperience, remoteOnly]);
+  }, [jobs, searchTerm, location, selectedJobType, selectedExperience, remoteOnly]);
 
   const handleViewDetails = (job: Job) => {
     setSelectedJob(job);
@@ -126,8 +120,6 @@ export function JobListings() {
       <JobSearch
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
         selectedJobType={selectedJobType}
         onJobTypeChange={setSelectedJobType}
         selectedExperience={selectedExperience}

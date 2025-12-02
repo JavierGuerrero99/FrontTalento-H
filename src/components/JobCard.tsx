@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Building2, MapPin, DollarSign, Clock, Users, Briefcase } from "lucide-react";
+import { Building2, MapPin, DollarSign, Clock, Briefcase } from "lucide-react";
 import type { Job } from "../lib/mockJobs";
 
 interface JobCardProps {
@@ -53,10 +53,6 @@ export function JobCard({ job, onViewDetails }: JobCardProps) {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="w-4 h-4" />
-            <span>{job.applicants} candidatos</span>
-          </div>
           <div className="flex gap-2">
             {job.isRemote && (
               <Badge variant="outline" className="text-xs">

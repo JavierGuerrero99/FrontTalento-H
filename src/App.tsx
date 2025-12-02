@@ -211,6 +211,7 @@ export default function App() {
           isAuthenticated={isAuthenticated}
           onLogout={handleLogout}
           userRole={userRole}
+          hideMisEmpresas={userRole === "candidato"}
         />
       )}
       
@@ -246,7 +247,7 @@ export default function App() {
             </div>
           )}
 
-          {activeSection === "mis-empresas" && !isRRHH && (
+          {activeSection === "mis-empresas" && !isRRHH && userRole !== "candidato" && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Mis Empresas</h1>
@@ -356,23 +357,25 @@ export default function App() {
                       onChange={(e) => setCompanySearchTerm(e.target.value)}
                     />
                   </div>
-                  {/* Botón crear empresa */}
-                  <div className="w-full sm:w-auto flex justify-end">
-                    <Dialog open={isCreateCompanyOpen} onOpenChange={setIsCreateCompanyOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full sm:w-auto">
-                          Crear empresa
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogTitle>Registrar empresa</DialogTitle>
-                        <DialogDescription>
-                          Completa la información para registrar una nueva empresa.
-                        </DialogDescription>
-                        <CompanyRegistrationForm />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                  {/* Botón crear empresa solo para admin/empresa */}
+                  {userRole !== "rrhh" && userRole !== "candidato" && (
+                    <div className="w-full sm:w-auto flex justify-end">
+                      <Dialog open={isCreateCompanyOpen} onOpenChange={setIsCreateCompanyOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="w-full sm:w-auto">
+                            Crear empresa
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogTitle>Registrar empresa</DialogTitle>
+                          <DialogDescription>
+                            Completa la información para registrar una nueva empresa.
+                          </DialogDescription>
+                          <CompanyRegistrationForm />
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
                 </div>
                 <CompaniesList searchTerm={companySearchTerm} />
               </div>

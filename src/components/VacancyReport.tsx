@@ -12,10 +12,14 @@ interface VacancyReportProps {
 export function VacancyReport({ vacancyId, onBack }: VacancyReportProps) {
     const [exportingId, setExportingId] = useState<number | null>(null);
 
+    const rawBaseUrl = (import.meta as any).env?.VITE_API_URL ?? (import.meta as any).env?.VITE_API_BASE_URL;
+    const fallbackBaseUrl = "http://127.0.0.1:8000/api";
+    const resolvedBaseRoot = typeof rawBaseUrl === "string" && rawBaseUrl.trim().length > 0 ? rawBaseUrl.trim().replace(/\/+$/, "") : fallbackBaseUrl.replace(/\/+$/, "");
+    const BASE_URL = /\/api$/i.test(resolvedBaseRoot) ? resolvedBaseRoot : `${resolvedBaseRoot}/api`;
     const handleExport = async (id: number) => {
       setExportingId(id);
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/metrics/vacante/${id}/export/pdf/`, {
+        const response = await axios.get(`${BASE_URL}/metrics/vacante/${id}/export/pdf/`, {
           responseType: 'blob',
         });
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
@@ -40,7 +44,7 @@ export function VacancyReport({ vacancyId, onBack }: VacancyReportProps) {
     setLoading(true);
     setError(null);
     axios
-      .get(`http://127.0.0.1:8000/api/metrics/?id_vacante=${vacancyId}`)
+      .get(`${BASE_URL}/metrics/?id_vacante=${vacancyId}`)
       .then((res) => {
         setData(res.data);
       })

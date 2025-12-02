@@ -90,8 +90,10 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
           {/* Campo Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative flex items-center">
+              <span className="absolute left-3 flex items-center h-full">
+                <Mail className="w-4 h-4 text-muted-foreground" />
+              </span>
               <Input
                 id="email"
                 type="email"
@@ -108,8 +110,10 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToRecove
           {/* Campo Contraseña */}
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative flex items-center">
+              <span className="absolute left-3 flex items-center h-full">
+                <Lock className="w-4 h-4 text-muted-foreground" />
+              </span>
               <Input
                 id="password"
                 type="password"

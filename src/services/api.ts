@@ -174,8 +174,11 @@ export const listFavorites = async () => {
 };
 import axios, { AxiosError } from "axios";
 
-// Base URL desde Vite env (VITE_API_BASE_URL). Si no existe, usa localhost por defecto.
-const BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+// Base URL desde Vite env (VITE_API_URL). Si no existe, usa localhost por defecto.
+const envBaseUrl = (import.meta as any).env?.VITE_API_URL ?? (import.meta as any).env?.VITE_API_BASE_URL;
+const fallbackBaseUrl = "http://127.0.0.1:8000/api";
+const resolvedBaseRoot = typeof envBaseUrl === "string" && envBaseUrl.trim().length > 0 ? envBaseUrl.trim().replace(/\/+$/, "") : fallbackBaseUrl.replace(/\/+$/, "");
+const BASE_URL = /\/api$/i.test(resolvedBaseRoot) ? resolvedBaseRoot : `${resolvedBaseRoot}/api`;
 
 const api = axios.create({
   baseURL: BASE_URL,

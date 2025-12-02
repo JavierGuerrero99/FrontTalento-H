@@ -31,6 +31,7 @@ type VacancyApplicationsProps = {
 };
 
 export function VacancyApplications({ vacancyId, onBack, onViewApplication }: VacancyApplicationsProps) {
+    const [filterStatus, setFilterStatus] = useState<string>("");
   const [applications, setApplications] = useState<any[]>([]);
   const [vacancy, setVacancy] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,8 +208,17 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
   );
 
   const displayedApplications = useMemo(() => {
-    if (!filterFavoritesOnly) return applications;
-    return applications.filter((application) => resolveFavorite(application).isFavorite);
+    let filtered = applications;
+    if (filterFavoritesOnly) {
+      filtered = filtered.filter((application) => resolveFavorite(application).isFavorite);
+    }
+    if (filterStatus) {
+      filtered = filtered.filter((application) => {
+        const status = resolveStatus(application).value;
+        return status === filterStatus;
+      });
+    }
+    return filtered;
   }, [applications, filterFavoritesOnly]);
 
   const displayedCount = displayedApplications.length;
@@ -349,6 +359,20 @@ export function VacancyApplications({ vacancyId, onBack, onViewApplication }: Va
           )}
         </div>
         <div className="flex flex-wrap gap-2">
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            className="border rounded px-2 py-1 text-sm bg-background"
+            style={{ minWidth: 180 }}
+          >
+            <option value="">Todos los estados</option>
+            <option value="Postulado">Postulado</option>
+            <option value="En revisión">En revisión</option>
+            <option value="Rechazado">Rechazado</option>
+            <option value="Entrevista">Entrevista</option>
+            <option value="Proceso de Contratación">Proceso de Contratación</option>
+            <option value="Contratado">Contratado</option>
+          </select>
           <Button
             variant={filterFavoritesOnly ? "secondary" : "outline"}
             size="sm"

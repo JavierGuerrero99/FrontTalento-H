@@ -519,39 +519,7 @@ export function ProfileSection() {
         </CardContent>
       </Card>
 
-      {/* Tarjeta adicional de configuración */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuración de cuenta</CardTitle>
-          <CardDescription>
-            Administra tus preferencias y privacidad
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p>Notificaciones por correo</p>
-              <p className="text-muted-foreground text-sm">
-                Recibe actualizaciones sobre tu cuenta
-              </p>
-            </div>
-            <Button variant="outline" size="sm">
-              Configurar
-            </Button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p>Cambiar contraseña</p>
-              <p className="text-muted-foreground text-sm">
-                Actualiza tu contraseña periódicamente
-              </p>
-            </div>
-            <Button variant="outline" size="sm">
-              Cambiar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* ...existing code... */}
     </div>
   );
 }

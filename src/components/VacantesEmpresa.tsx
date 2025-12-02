@@ -38,7 +38,11 @@ export function VacantesEmpresa({ empresaId, onViewReport }: VacantesEmpresaProp
     setReportLoading(true);
     setReportError(null);
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/metrics/?id_vacante=${vacancyId}`);
+      const rawBaseUrl = (import.meta as any).env?.VITE_API_URL ?? (import.meta as any).env?.VITE_API_BASE_URL;
+      const fallbackBaseUrl = "http://127.0.0.1:8000/api";
+      const resolvedBaseRoot = typeof rawBaseUrl === "string" && rawBaseUrl.trim().length > 0 ? rawBaseUrl.trim().replace(/\/+$/, "") : fallbackBaseUrl.replace(/\/+$/, "");
+      const BASE_URL = /\/api$/i.test(resolvedBaseRoot) ? resolvedBaseRoot : `${resolvedBaseRoot}/api`;
+      const res = await axios.get(`${BASE_URL}/metrics/?id_vacante=${vacancyId}`);
       setReportData(res.data);
     } catch (e: any) {
       setReportError("No se pudo cargar el reporte de la vacante.");

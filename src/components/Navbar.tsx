@@ -19,6 +19,7 @@ interface NavbarProps {
   isAuthenticated?: boolean;
   onLogout?: () => void;
   userRole?: string | null;
+  hideMisEmpresas?: boolean;
 }
 
 export function Navbar({
@@ -27,6 +28,7 @@ export function Navbar({
   isAuthenticated = false,
   onLogout,
   userRole = null,
+  hideMisEmpresas = false,
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [companies, setCompanies] = useState([]);
@@ -200,14 +202,16 @@ export function Navbar({
                       Empresas
                     </Button>
 
-                    <Button
-                      variant={activeSection === "mis-empresas" ? "default" : "ghost"}
-                      onClick={() => handleNavigation("mis-empresas")}
-                      className="gap-2"
-                    >
-                      <Layers className="w-4 h-4" />
-                      Mis Empresas
-                    </Button>
+                    {!hideMisEmpresas && (
+                      <Button
+                        variant={activeSection === "mis-empresas" ? "default" : "ghost"}
+                        onClick={() => handleNavigation("mis-empresas")}
+                        className="gap-2"
+                      >
+                        <Layers className="w-4 h-4" />
+                        Mis Empresas
+                      </Button>
+                    )}
                   </>
                 )}
 
@@ -297,13 +301,15 @@ export function Navbar({
                           Empresas
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem
-                          onClick={() => handleNavigation("mis-empresas")}
-                          className="gap-2 cursor-pointer"
-                        >
-                          <Layers className="w-4 h-4" />
-                          Mis Empresas
-                        </DropdownMenuItem>
+                        {!hideMisEmpresas && (
+                          <DropdownMenuItem
+                            onClick={() => handleNavigation("mis-empresas")}
+                            className="gap-2 cursor-pointer"
+                          >
+                            <Layers className="w-4 h-4" />
+                            Mis Empresas
+                          </DropdownMenuItem>
+                        )}
                       </>
                     )}
 

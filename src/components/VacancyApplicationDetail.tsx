@@ -32,6 +32,7 @@ const STATUS_OPTIONS = [
   { value: "En revisión", label: "En revisión" },
   { value: "Rechazado", label: "Rechazado" },
   { value: "Entrevista", label: "Entrevista" },
+  { value: "Proceso de Contratación", label: "Proceso de Contratación" },
   { value: "Contratado", label: "Contratado" },
 ];
 
@@ -42,6 +43,26 @@ type VacancyApplicationDetailProps = {
 };
 
 export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }: VacancyApplicationDetailProps) {
+      // ...existing code...
+    // Estado para valoración y descripción de la entrevista
+    const [interviewRating, setInterviewRating] = useState<number | null>(null);
+    const [interviewReview, setInterviewReview] = useState("");
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+    // Simulación de guardado (reemplazar con API real si existe)
+    const handleSaveInterviewReview = async () => {
+      setReviewSubmitting(true);
+      try {
+        // Aquí iría la llamada a la API para guardar la valoración y descripción
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        toast.success("Valoración de la entrevista guardada");
+        setReviewDialogOpen(false);
+      } catch {
+        toast.error("No se pudo guardar la valoración");
+      } finally {
+        setReviewSubmitting(false);
+      }
+    };
   const [applications, setApplications] = useState<any[]>([]);
   const [vacancy, setVacancy] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +74,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
   const [statusValue, setStatusValue] = useState("");
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [isInterviewDialogOpen, setInterviewDialogOpen] = useState(false);
+  const [isReviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [interviewDate, setInterviewDate] = useState("");
   const [interviewTime, setInterviewTime] = useState("");
   const [interviewMedium, setInterviewMedium] = useState("Google Meet");
@@ -259,6 +281,13 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
     return Boolean(applicationId && effectiveStatus === "entrevista");
   }, [applicationId, candidateStatus.value, statusValue]);
 
+  const canReviewInterview = useMemo(() => {
+    const effectiveStatus = `${statusValue || candidateStatus.value || ""}`
+      .trim()
+      .toLowerCase();
+    return ["entrevista", "proceso de contratación", "contratado"].includes(effectiveStatus);
+  }, [candidateStatus.value, statusValue]);
+
   const handleScheduleInterview = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -411,16 +440,33 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
                           {statusUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                           {statusUpdating ? "Actualizando..." : "Actualizar estado"}
                         </Button>
-                        {canScheduleInterview ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="w-full gap-2"
-                            onClick={() => setInterviewDialogOpen(true)}
-                          >
-                            <CalendarClock className="h-4 w-4" />
-                            Agendar entrevista
-                          </Button>
+                        {(canScheduleInterview || canReviewInterview) ? (
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {canScheduleInterview ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="w-full gap-2"
+                                onClick={() => setInterviewDialogOpen(true)}
+                              >
+                                <CalendarClock className="h-4 w-4" />
+                                Agendar entrevista
+                              </Button>
+                            ) : null}
+                            {canReviewInterview ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="w-full gap-2"
+                                onClick={() => !reviewSubmitting && setReviewDialogOpen(true)}
+                                disabled={reviewSubmitting}
+                              >
+                                <NotebookPen className="h-4 w-4" />
+                                Valorar
+                              </Button>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     </div>
@@ -496,7 +542,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
           </div>
         )}
 
-        {!loading && !error && selectedApplication && (
+        {/* Sección para valorar la entrevista solo si el estado es válido */}
           <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm backdrop-blur">
             <Accordion type="multiple" defaultValue={["internal-notes", "comments-history"]} className="space-y-4">
               <AccordionItem
@@ -606,7 +652,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
               </AccordionItem>
             </Accordion>
           </div>
-        )}
+        )
       </CardContent>
       </Card>
       <Dialog open={isInterviewDialogOpen} onOpenChange={handleInterviewDialogChange}>
@@ -640,17 +686,7 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="interview-medium">Medio</Label>
-              <Input
-                id="interview-medium"
-                value={interviewMedium}
-                onChange={(event) => setInterviewMedium(event.target.value)}
-                placeholder="Google Meet, Zoom o presencial"
-                disabled={interviewSubmitting}
-                required
-              />
-            </div>
+            {/* Campo 'Medio' eliminado */}
             <div className="grid gap-2">
               <Label htmlFor="interview-description">Descripción (opcional)</Label>
               <Textarea
@@ -678,6 +714,95 @@ export function VacancyApplicationDetail({ vacancyId, applicationSlug, onBack }:
           </form>
         </DialogContent>
       </Dialog>
+        <Dialog
+          open={isReviewDialogOpen}
+          onOpenChange={(open: boolean) => {
+            if (!reviewSubmitting) {
+              setReviewDialogOpen(open);
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Valorar entrevista</DialogTitle>
+              <DialogDescription>
+                Registra la calificación y comentarios sobre la entrevista realizada a la persona candidata.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-3">
+                <Label className="text-base font-medium">Valoración</Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        className={`cursor-pointer text-3xl transition-colors border rounded-full ${interviewRating && interviewRating >= star ? "text-yellow-400 border-yellow-400" : "text-white border-gray-400 hover:text-yellow-300 hover:border-yellow-300"}`}
+                        onClick={() => !reviewSubmitting && setInterviewRating(star)}
+                        role="button"
+                        aria-label={`Valoración ${star}`}
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (!reviewSubmitting && (event.key === "Enter" || event.key === " ")) {
+                            setInterviewRating(star);
+                          }
+                        }}
+                        style={{
+                          marginRight: star < 5 ? "4px" : 0,
+                          borderWidth: "2px",
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  {interviewRating ? (
+                    <span className="text-sm text-muted-foreground">{interviewRating} / 5</span>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="interview-review" className="text-base font-medium">
+                  Descripción de la entrevista
+                </Label>
+                <Textarea
+                  id="interview-review"
+                  value={interviewReview}
+                  onChange={(event) => setInterviewReview(event.target.value)}
+                  rows={4}
+                  placeholder="Agrega comentarios sobre la entrevista..."
+                  disabled={reviewSubmitting}
+                  className="border-primary/40 focus:border-primary px-3 py-2"
+                  style={{ minHeight: 80 }}
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setReviewDialogOpen(false)}
+                disabled={reviewSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleSaveInterviewReview}
+                disabled={reviewSubmitting || !interviewRating}
+                className={`${reviewSubmitting || !interviewRating ? "opacity-60 cursor-not-allowed" : ""}`}
+              >
+                {reviewSubmitting ? "Guardando..." : "Guardar valoración"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
     </>
   );
 }

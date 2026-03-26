@@ -8,9 +8,10 @@ import api, { getVacancy } from "../services/api";
 interface VacancyDetailProps {
   vacancyId: number;
   onBack?: () => void;
+  canApply?: boolean;
 }
 
-export function VacancyDetail({ vacancyId, onBack }: VacancyDetailProps) {
+export function VacancyDetail({ vacancyId, onBack, canApply = false }: VacancyDetailProps) {
   const [vacancy, setVacancy] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +87,7 @@ export function VacancyDetail({ vacancyId, onBack }: VacancyDetailProps) {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="default">Aplicar a esta vacante</Button>
+          {canApply && <Button variant="default">Aplicar a esta vacante</Button>}
           <Button variant="ghost" onClick={onBack || (() => window.history.back())}>Volver</Button>
         </div>
       </CardContent>

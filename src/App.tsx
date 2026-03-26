@@ -23,6 +23,25 @@ import { ResetPasswordForm } from "./components/ResetPasswordForm";
 import { MyVacancies } from "./components/MyVacancies";
 import { getProfile } from "./services/api";
 import { BackButton } from "./components/BackButton";
+
+const normalizeRole = (rawRole: unknown): string | null => {
+  if (!rawRole) return null;
+
+  const value = String(rawRole).trim().toLowerCase();
+  if (!value) return null;
+
+  const compact = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s._-]+/g, "");
+
+  if (compact.includes("admin")) return "admin";
+  if (compact.includes("rrhh") || compact.includes("recursoshumanos") || compact === "hr") return "rrhh";
+  if (compact.includes("candidato")) return "candidato";
+
+  return compact;
+};
+
 export default function App() {
 
   // Restaurar estado a partir del token en localStorage para mantener sesión al recargar
@@ -144,7 +163,7 @@ export default function App() {
           profile?.rol ||
           profile?.user_role ||
           (Array.isArray(profile?.groups) && profile.groups.length > 0 ? profile.groups[0] : null);
-        const normalizedRole = rawRole ? String(rawRole).toLowerCase() : null;
+        const normalizedRole = normalizeRole(rawRole);
         setUserRole(normalizedRole);
         const derivedId =
           typeof profile?.id === "number"
@@ -180,14 +199,32 @@ export default function App() {
   }, [isAuthenticated]);
 
   const normalizedRole = useMemo(() => userRole?.toLowerCase() ?? null, [userRole]);
+  const isAdmin = normalizedRole === "admin";
   const isRRHH = normalizedRole === "rrhh";
+  const isCandidate = normalizedRole === "candidato";
+  const isRestrictedRole = isRRHH || isCandidate;
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    if (isRRHH && (activeSection === "empresas" || activeSection === "mis-empresas")) {
-      handleNavigate("mis-vacantes", { replace: true });
+    if (!isRestrictedRole) return;
+
+    const canAccessCompanySection =
+      /^empresa-\d+$/.test(activeSection) ||
+      /^empresa-\d+-vacantes$/.test(activeSection) ||
+      /^empresa-\d+-vacantes-reporte-\d+$/.test(activeSection);
+
+    const canAccessSection =
+      activeSection === "trabajos" ||
+      activeSection === "empresas" ||
+      activeSection === "perfil" ||
+      (isRRHH && activeSection === "mis-vacantes") ||
+      activeSection.startsWith("vacante-") ||
+      canAccessCompanySection;
+
+    if (!canAccessSection) {
+      handleNavigate("trabajos", { replace: true });
     }
-  }, [isAuthenticated, isRRHH, activeSection, handleNavigate]);
+  }, [isAuthenticated, isRestrictedRole, activeSection, handleNavigate]);
 
   const hideNavbarSections = ["login", "recover", "registro"];
   const shouldShowNavbar = !hideNavbarSections.includes(activeSection);
@@ -211,7 +248,7 @@ export default function App() {
           isAuthenticated={isAuthenticated}
           onLogout={handleLogout}
           userRole={userRole}
-          hideMisEmpresas={userRole === "candidato"}
+          hideMisEmpresas={!isAdmin}
         />
       )}
       
@@ -243,7 +280,7 @@ export default function App() {
                   Explora miles de oportunidades laborales en Colombia
                 </p>
               </div>
-              <JobListings />
+              <JobListings userRole={normalizedRole} />
             </div>
           )}
 
@@ -329,6 +366,7 @@ export default function App() {
                 <CompanyCard
                   companyId={id}
                   isRRHH={isRRHH}
+                  canManageCompany={isAdmin}
                   onCreateVacancy={(companyId) => handleNavigate(`empresa-${companyId}-crear-vacante`)}
                   onListVacancies={(companyId) => handleNavigate(`empresa-${companyId}-vacantes`)}
                   onListEmployees={(companyId) => handleNavigate(`empresa-${companyId}-empleados`)}
@@ -337,7 +375,7 @@ export default function App() {
             );
           })()}
 
-          {activeSection === "empresas" && !isRRHH && (
+          {activeSection === "empresas" && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Empresas</h1>
@@ -358,7 +396,7 @@ export default function App() {
                     />
                   </div>
                   {/* Botón crear empresa solo para admin/empresa */}
-                  {userRole !== "rrhh" && userRole !== "candidato" && (
+                  {isAdmin && (
                     <div className="w-full sm:w-auto flex justify-end">
                       <Dialog open={isCreateCompanyOpen} onOpenChange={setIsCreateCompanyOpen}>
                         <DialogTrigger asChild>
@@ -382,7 +420,7 @@ export default function App() {
             </div>
           )}
 
-          {activeSection === "mis-vacantes" && isRRHH && (
+          {activeSection === "mis-vacantes" && (isRRHH || isAdmin) && (
             <div className="w-full flex flex-col items-center gap-6">
               <div className="text-center space-y-2">
                 <h1 className="text-primary">Mis Vacantes</h1>
@@ -463,6 +501,7 @@ export default function App() {
                 </div>
                 <VacancyDetail
                   vacancyId={id}
+                  canApply={isCandidate}
                   onBack={() => goBackOrNavigate(isRRHH ? "mis-vacantes" : "trabajos")}
                 />
               </div>

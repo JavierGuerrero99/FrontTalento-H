@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 interface CompanyCardProps {
   companyId: number;
   isRRHH?: boolean;
+  canManageCompany?: boolean;
   onCreateVacancy?: (companyId: number) => void;
   onListVacancies?: (companyId: number) => void;
   onListEmployees?: (companyId: number) => void;
@@ -22,6 +23,7 @@ interface CompanyCardProps {
 export function CompanyCard({
   companyId,
   isRRHH = false,
+  canManageCompany = false,
   onCreateVacancy,
   onListVacancies,
   onListEmployees,
@@ -170,7 +172,7 @@ export function CompanyCard({
           </div>
 
           <div className="flex items-center gap-2">
-            {!editMode ? (
+            {canManageCompany && (!editMode ? (
               <Button variant="outline" onClick={onStartEdit}>Editar</Button>
             ) : (
               <div className="flex gap-2">
@@ -179,7 +181,7 @@ export function CompanyCard({
                 </Button>
                 <Button variant="ghost" onClick={handleCancel} disabled={isSaving}>Cancelar</Button>
               </div>
-            )}
+            ))}
           </div>
         </div>
       </CardHeader>
@@ -194,7 +196,7 @@ export function CompanyCard({
               {company.descripcion && <p><strong>Descripción:</strong> {company.descripcion}</p>}
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              {!isRRHH && (
+              {canManageCompany && !isRRHH && (
                 <Button
                   variant="default"
                   className="w-full"
@@ -227,7 +229,7 @@ export function CompanyCard({
                   Empleados
                 </Button>
               )}
-              {!isRRHH && (
+              {canManageCompany && !isRRHH && (
                 <Button
                   variant="outline"
                   className="w-full"
@@ -274,7 +276,7 @@ export function CompanyCard({
           </div>
         )}
       </CardContent>
-      {!isRRHH && (
+      {canManageCompany && !isRRHH && (
         <AssignEmployeesDialog
           open={assignDialogOpen}
           companyId={companyId}

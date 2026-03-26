@@ -23,14 +23,16 @@ interface JobDetailProps {
   job: Job | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  canApply?: boolean;
 }
 
-export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
+export function JobDetail({ job, open, onOpenChange, canApply = false }: JobDetailProps) {
   if (!job) return null;
 
   const [applySuccess, setApplySuccess] = useState<string | null>(null);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -45,6 +47,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
       setApplyError(null);
       setApplySuccess(null);
       setApplying(false);
+      setApplyDialogOpen(false);
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -55,7 +58,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   const handleApplyClick = () => {
     setApplyError(null);
     setApplySuccess(null);
-    fileInputRef.current?.click();
+    setApplyDialogOpen(true);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,6 +100,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
       const successMessage = backendMessage || "Postulado con exito";
       setApplySuccess(successMessage);
       toast.success(successMessage);
+      setApplyDialogOpen(false);
       setSelectedFile(null);
     } catch (error: any) {
       const backendData = error?.response?.data;
@@ -117,6 +121,7 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
   const handleCancelUpload = () => {
     setSelectedFile(null);
     setApplyError(null);
+    setApplyDialogOpen(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -135,41 +140,6 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             {/* applySuccess/applyError solo toast, Alert removido */}
-            {selectedFile && (
-              <div className="mb-4 overflow-hidden rounded-lg border border-muted bg-background shadow-sm">
-                <div className="flex items-center gap-3 border-b border-muted/60 bg-muted/20 px-4 py-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Send className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-foreground">¿Listo para enviar tu hoja de vida?</p>
-                    <p className="text-xs text-muted-foreground">Revisa el archivo seleccionado antes de confirmar.</p>
-                  </div>
-                </div>
-                <div className="px-4 py-3 space-y-3">
-                  <div className="flex items-start gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 p-3">
-                    <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">Archivo:</span> {selectedFile.name}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button size="sm" onClick={handleConfirmUpload} disabled={applying} className="flex-1 sm:flex-none">
-                      {applying ? "Enviando postulación..." : "Confirmar envío"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleCancelUpload}
-                      disabled={applying}
-                      className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 sm:flex-none"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
             <DialogHeader className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -214,13 +184,15 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
                 </Badge>
               </div>
 
-              {/* Botón de postulación */}
-              <div className="flex gap-3">
-                <Button className="flex-1 gap-2" onClick={handleApplyClick} disabled={applying}>
-                  <Send className="w-4 h-4" />
-                  {applying ? "Enviando postulación..." : "Postularme a este trabajo"}
-                </Button>
-              </div>
+              {/* Botón de postulación solo para candidatos */}
+              {canApply && (
+                <div className="flex gap-3">
+                  <Button className="flex-1 gap-2" onClick={handleApplyClick}>
+                    <Send className="w-4 h-4" />
+                    Postularme a este trabajo
+                  </Button>
+                </div>
+              )}
             </DialogHeader>
 
             <Separator className="my-6" />
@@ -278,6 +250,55 @@ export function JobDetail({ job, open, onOpenChange }: JobDetailProps) {
           </div>
         </ScrollArea>
       </DialogContent>
+
+      {canApply && (
+        <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Postularme a esta vacante</DialogTitle>
+              <DialogDescription>
+                Adjunta tu hoja de vida y confirma el envio de tu postulacion.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
+                Agregar hoja de vida
+              </Button>
+
+              {selectedFile && (
+                <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-3 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Archivo seleccionado:</span> {selectedFile.name}
+                </div>
+              )}
+
+              {applyError && (
+                <p className="text-sm text-destructive">{applyError}</p>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={handleConfirmUpload}
+                  disabled={!selectedFile || applying}
+                >
+                  {applying ? "Enviando postulación..." : "Confirmar postulación"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex-1"
+                  onClick={handleCancelUpload}
+                  disabled={applying}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

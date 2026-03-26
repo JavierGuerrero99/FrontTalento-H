@@ -7,7 +7,11 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle } from "lucide-react";
 import { listVacancies } from "../services/api";
 
-export function JobListings() {
+interface JobListingsProps {
+  userRole?: string | null;
+}
+
+export function JobListings({ userRole = null }: JobListingsProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +22,7 @@ export function JobListings() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const canApplyToVacancies = userRole === "candidato";
 
   // Cargar vacantes publicadas desde el backend
   useEffect(() => {
@@ -169,6 +174,7 @@ export function JobListings() {
         job={selectedJob}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
+        canApply={canApplyToVacancies}
       />
     </div>
   );

@@ -72,9 +72,29 @@ export const getVacancy = async (id: number) => {
 
 export const getVacancyApplications = async (vacancyId: number) => {
   const host = BASE_URL.replace(/\/api\/?$/i, "");
-  const url = `${host}/vacantes/${vacancyId}/postulaciones/`;
-  const resp = await api.get(url);
-  return resp.data;
+  const candidateUrls = [
+    `${host}/vacantes/${vacancyId}/postulaciones/`,
+    `${host}/reclutador/vacantes/${vacancyId}/postulaciones/`,
+    `${host}/rrhh/vacantes/${vacancyId}/postulaciones/`,
+  ];
+
+  let lastError: unknown = null;
+
+  for (const url of candidateUrls) {
+    try {
+      const resp = await api.get(url);
+      return resp.data;
+    } catch (error: any) {
+      lastError = error;
+      const status = error?.response?.status;
+      // Intentar con la siguiente variante cuando el endpoint no exista o no aplique para el rol actual.
+      if (status === 401) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
 };
 
 export const commentOnApplication = async (applicationId: number | string, subject: string, message: string) => {

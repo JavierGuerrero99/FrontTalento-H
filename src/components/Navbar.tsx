@@ -22,6 +22,24 @@ interface NavbarProps {
   hideMisEmpresas?: boolean;
 }
 
+const normalizeRole = (rawRole: unknown): string | null => {
+  if (!rawRole) return null;
+
+  const value = String(rawRole).trim().toLowerCase();
+  if (!value) return null;
+
+  const compact = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s._-]+/g, "");
+
+  if (compact.includes("admin")) return "admin";
+  if (compact.includes("rrhh") || compact.includes("recursoshumanos") || compact === "hr") return "rrhh";
+  if (compact.includes("candidato")) return "candidato";
+
+  return compact;
+};
+
 export function Navbar({
   activeSection = "trabajos",
   onNavigate,
@@ -144,8 +162,10 @@ export function Navbar({
     setMobileMenuOpen(false);
   };
 
-  const normalizedRole = userRole?.toLowerCase() ?? null;
+  const normalizedRole = normalizeRole(userRole);
+  const isAdmin = normalizedRole === "admin";
   const isRRHH = normalizedRole === "rrhh";
+  const canViewAdminSections = isAdmin;
   const roleLabel = normalizedRole
     ? normalizedRole === "candidato"
       ? null
@@ -191,17 +211,17 @@ export function Navbar({
                   Trabajos
                 </Button>
 
-                {!isRRHH && (
-                  <>
-                    <Button
-                      variant={activeSection === "empresas" ? "default" : "ghost"}
-                      onClick={() => handleNavigation("empresas")}
-                      className="gap-2"
-                    >
-                      <Building2 className="w-4 h-4" />
-                      Empresas
-                    </Button>
+                <Button
+                  variant={activeSection === "empresas" ? "default" : "ghost"}
+                  onClick={() => handleNavigation("empresas")}
+                  className="gap-2"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Empresas
+                </Button>
 
+                {canViewAdminSections && (
+                  <>
                     {!hideMisEmpresas && (
                       <Button
                         variant={activeSection === "mis-empresas" ? "default" : "ghost"}
@@ -215,7 +235,7 @@ export function Navbar({
                   </>
                 )}
 
-                {isRRHH && (
+                {(isRRHH || isAdmin) && (
                   <Button
                     variant={activeSection === "mis-vacantes" ? "default" : "ghost"}
                     onClick={() => handleNavigation("mis-vacantes")}
@@ -291,16 +311,16 @@ export function Navbar({
                       Trabajos
                     </DropdownMenuItem>
 
-                    {!isRRHH && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => handleNavigation("empresas")}
-                          className="gap-2 cursor-pointer"
-                        >
-                          <Building2 className="w-4 h-4" />
-                          Empresas
-                        </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleNavigation("empresas")}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      Empresas
+                    </DropdownMenuItem>
 
+                    {canViewAdminSections && (
+                      <>
                         {!hideMisEmpresas && (
                           <DropdownMenuItem
                             onClick={() => handleNavigation("mis-empresas")}
@@ -313,7 +333,7 @@ export function Navbar({
                       </>
                     )}
 
-                    {isRRHH && (
+                    {(isRRHH || isAdmin) && (
                       <DropdownMenuItem
                         onClick={() => handleNavigation("mis-vacantes")}
                         className="gap-2 cursor-pointer"
@@ -323,7 +343,7 @@ export function Navbar({
                       </DropdownMenuItem>
                     )}
 
-                    {!isRRHH && ((companiesWithLogo.length > 0) ? companiesWithLogo : companies).length > 0 && (
+                    {canViewAdminSections && ((companiesWithLogo.length > 0) ? companiesWithLogo : companies).length > 0 && (
                       <div className="px-2 py-1">
                         {((companiesWithLogo.length > 0) ? companiesWithLogo : companies).map((company: any) => (
                           <DropdownMenuItem

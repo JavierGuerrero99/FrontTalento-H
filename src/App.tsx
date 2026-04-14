@@ -136,9 +136,11 @@ export default function App() {
   );
 
   // Detectar si estamos en una URL de reset enviada por correo.
-  // Acepta varias variantes comunes para no depender de un único formato del backend.
+  // Acepta rutas con segmentos o con query params para no depender de un único formato del backend.
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
-  const hashPath = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  const hash = typeof window !== "undefined" ? window.location.hash : "";
+
   const extractResetMatch = (path: string) => {
     const normalizedPath = path.replace(/\/+$/, "");
     const patterns = [
@@ -155,9 +157,42 @@ export default function App() {
 
     return null;
   };
+
+  const readResetParams = () => {
+    if (typeof window === "undefined") {
+      return { uid: null as string | null, token: null as string | null };
+    }
+
+    const url = new URL(window.location.href);
+    const hashIndex = hash.indexOf("?");
+    const hashParams = hashIndex >= 0 ? new URLSearchParams(hash.slice(hashIndex + 1)) : new URLSearchParams();
+
+    const uid =
+      url.searchParams.get("uid") ||
+      url.searchParams.get("uidb64") ||
+      url.searchParams.get("user_id") ||
+      url.searchParams.get("id") ||
+      hashParams.get("uid") ||
+      hashParams.get("uidb64") ||
+      hashParams.get("user_id") ||
+      hashParams.get("id");
+
+    const token =
+      url.searchParams.get("token") ||
+      url.searchParams.get("key") ||
+      url.searchParams.get("code") ||
+      hashParams.get("token") ||
+      hashParams.get("key") ||
+      hashParams.get("code");
+
+    return { uid, token };
+  };
+
+  const hashPath = hash.replace(/^#/, "").split("?")[0] || "";
   const resetMatch = extractResetMatch(pathname) ?? extractResetMatch(hashPath);
-  const resetUid = resetMatch?.[1] || null;
-  const resetToken = resetMatch?.[2] || null;
+  const queryParams = readResetParams();
+  const resetUid = resetMatch?.[1] || queryParams.uid || null;
+  const resetToken = resetMatch?.[2] || queryParams.token || null;
 
   useEffect(() => {
     let cancelled = false;

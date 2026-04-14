@@ -135,9 +135,12 @@ export default function App() {
     [goBack, handleNavigate]
   );
 
-  // Detectar si estamos en la URL de reset de contraseña enviada por correo
+  // Detectar si estamos en la URL de reset de contraseña enviada por correo.
+  // Acepta tanto rutas normales como rutas con hash para despliegues SPA.
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
-  const resetMatch = pathname.match(/^\/reset-password\/([^/]+)\/([^/]+)\/?$/);
+  const hashPath = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
+  const extractResetMatch = (path: string) => path.match(/^\/reset-password\/([^/]+)\/([^/]+)\/?$/);
+  const resetMatch = extractResetMatch(pathname) ?? extractResetMatch(hashPath);
   const resetUid = resetMatch?.[1] || null;
   const resetToken = resetMatch?.[2] || null;
 

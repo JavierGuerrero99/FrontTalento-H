@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
-import { Alert, AlertDescription } from "./ui/alert";
 import { Lock } from "lucide-react";
 import api from "../services/api";
 import { toast } from "react-hot-toast";
@@ -33,8 +32,6 @@ interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ uid, token, onGoToLogin }: ResetPasswordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const {
     register,
@@ -46,16 +43,14 @@ export function ResetPasswordForm({ uid, token, onGoToLogin }: ResetPasswordForm
 
   const onSubmit = async (data: ResetFormData) => {
     setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       await api.post(`/auth/password-reset-confirm/${uid}/${token}/`, {
         password: data.password,
       });
       const successMessage = "Contraseña restablecida correctamente. Ya puedes iniciar sesión.";
-      setSuccess(successMessage);
       toast.success(successMessage);
+      onGoToLogin?.();
     } catch (err: any) {
       console.error("Error en confirmación de contraseña", err?.response || err);
       const detail = err?.response?.data?.detail || err?.response?.data?.error;
@@ -63,7 +58,6 @@ export function ResetPasswordForm({ uid, token, onGoToLogin }: ResetPasswordForm
         typeof detail === "string"
           ? detail
           : "No se pudo restablecer la contraseña. El enlace puede ser inválido o haber expirado.";
-      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
